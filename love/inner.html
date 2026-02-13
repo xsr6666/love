@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>秘密基地 - 我们的故事</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/inner.css">
+  <link rel="stylesheet" href="css/modules.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer@1.10/dist/APlayer.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body class="inner-page module-page">
+  <div class="background-container">
+    <div class="bg-video-wrap inner-video hidden" id="innerVideoWrap">
+      <video class="bg-video" id="innerVideo" autoplay muted loop playsinline></video>
+    </div>
+    <div class="background-image inner-bg" id="innerBgImage"></div>
+    <div class="aurora aurora-1"></div>
+    <div class="aurora aurora-2"></div>
+    <div class="aurora aurora-3"></div>
+    <div class="gradient-vignette"></div>
+  </div>
+
+  <button type="button" class="side-icon side-icon-left" id="pandaBtn" title="私聊">
+    <img src="assets/redpanda.svg" alt="小熊猫" class="side-icon-img" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+    <span class="side-icon-emoji" style="display:none">🦊</span>
+  </button>
+  <button type="button" class="side-icon side-icon-right" id="musicIconBtn" title="留声机">
+    <img src="assets/phonograph.svg" alt="留声机" class="side-icon-img" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+    <span class="side-icon-emoji" style="display:none">🎵</span>
+  </button>
+
+  <header class="inner-header">
+    <a href="index.html" class="nav-link">返回</a>
+    <nav class="header-nav">
+      <a href="feed.html" class="nav-link">点滴</a>
+      <a href="album.html" class="nav-link">相册</a>
+      <a href="travel.html" class="nav-link">旅行</a>
+      <a href="todo.html" class="nav-link">代办</a>
+      <a href="profile.html" class="nav-link">我的</a>
+      <a href="messages.html" class="nav-link">留言</a>
+      <a href="login.html" class="nav-link">切换</a>
+    </nav>
+    <a href="admin.html" class="nav-link" title="管理">设置</a>
+  </header>
+
+  <main class="inner-content home-dashboard">
+    <div class="hero-row">
+      <section class="hero-timer">
+        <h2 class="hero-title">我们携手走过</h2>
+        <div class="timer-display" id="timerDisplay">
+          <span id="timerDays">0</span>天
+          <span id="timerHours">0</span>时
+          <span id="timerMins">0</span>分
+          <span id="timerSecs">0</span>秒
+        </div>
+      </section>
+      <aside class="hero-side">
+        <div class="checkin-card-mini">
+          <button type="button" class="checkin-btn-mini checkin-btn-heart" id="checkinBtn" title="今日打卡">♥</button>
+          <p class="checkin-compare" id="checkinCompare">看谁打卡多</p>
+          <p class="checkin-hint" id="checkinHint"></p>
+        </div>
+      </aside>
+    </div>
+
+    <section class="feed-section">
+      <div class="section-card feed-card">
+        <div class="section-header">
+          <h3>动态分享</h3>
+          <a href="feed.html" class="section-more">查看详情</a>
+        </div>
+        <div class="feed-scroll" id="feedScroll">
+          <div class="feed-list-mini" id="feedListMini"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="message-section">
+      <div class="message-board">
+        <div class="section-header">
+          <h3 class="board-title">留言板</h3>
+          <a href="messages.html" class="section-more">查看详情</a>
+        </div>
+        <div class="message-form">
+          <textarea id="msgInput" placeholder="写点什么悄悄话..." rows="2"></textarea>
+          <button type="button" class="msg-voice-btn" id="msgVoiceBtn" title="语音留言">🎤</button>
+          <button type="button" class="msg-send-btn" id="msgSendBtn">发送</button>
+        </div>
+        <div class="message-list" id="messageList"></div>
+      </div>
+    </section>
+
+    <section class="rec-row">
+      <div class="rec-card">
+        <div class="section-header">
+          <h3>🎬 影视推荐</h3>
+          <a href="movies.html" class="section-more">查看详情</a>
+        </div>
+        <p class="rec-hint">搜索电影，记录我们的观影</p>
+      </div>
+      <div class="rec-card">
+        <div class="section-header">
+          <h3>🎮 游戏推荐</h3>
+          <a href="games.html" class="section-more">查看详情</a>
+        </div>
+        <p class="rec-hint">记录我们一起玩的游戏</p>
+      </div>
+    </section>
+    <section class="rec-row">
+      <div class="rec-card">
+        <div class="section-header">
+          <h3>✈️ 旅行</h3>
+          <a href="travel.html" class="section-more">查看地图</a>
+        </div>
+        <p class="rec-hint">记录我们去过的地方</p>
+      </div>
+      <div class="rec-card">
+        <div class="section-header">
+          <h3>📋 代办</h3>
+          <a href="todo.html" class="section-more">查看日历</a>
+        </div>
+        <p class="rec-hint">日历与待办事项</p>
+      </div>
+    </section>
+  </main>
+
+  <div class="chat-popup" id="chatPopup">
+    <div class="chat-window">
+      <div class="chat-header">
+        <h3>💬 私聊</h3>
+        <button type="button" class="chat-close" id="chatClose">×</button>
+      </div>
+      <div class="chat-messages" id="chatMessages"></div>
+      <div class="chat-form">
+        <input type="text" id="chatInput" placeholder="说句悄悄话...">
+        <button type="button" class="chat-send" id="chatSendBtn">发送</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="music-popup" id="musicPopup">
+    <div class="music-window">
+      <div class="music-header">
+        <h3>留声机</h3>
+        <a href="music.html" target="_blank" class="music-open-new" title="在新窗口打开，可后台播放">新窗口</a>
+        <button type="button" class="music-close" id="musicClose">×</button>
+      </div>
+      <div class="music-meting-wrap">
+        <div class="music-search-row">
+          <input type="text" id="musicSearch" placeholder="搜索歌曲或歌单...">
+          <button type="button" id="musicSearchBtn">搜索</button>
+        </div>
+        <div id="musicMetingContainer"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="https://static.cloudbase.net/cloudbase-js-sdk/latest/cloudbase.full.js"></script>
+  <script src="js/cloudbase.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/voice-msg.js"></script>
+  <script src="js/inner.js"></script>
+  <script src="js/inner-auth.js"></script>
+  <script src="js/inner-home.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/aplayer@1.10/dist/APlayer.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/meting@2/dist/Meting.min.js"></script>
+  <script src="js/inner-modules.js"></script>
+</body>
+</html>

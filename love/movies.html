@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>影视推荐 - 恋爱秘密基地</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/inner.css">
+  <link rel="stylesheet" href="css/modules.css">
+  <link rel="stylesheet" href="css/movies.css">
+  <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="inner-page module-page">
+  <div class="background-container">
+    <div class="bg-video-wrap inner-video hidden" id="bgVideoWrap">
+      <video class="bg-video" id="innerVideo" autoplay muted loop playsinline></video>
+    </div>
+    <div class="background-image inner-bg" id="moviesBg"></div>
+    <div class="aurora aurora-1"></div>
+    <div class="aurora aurora-2"></div>
+    <div class="gradient-vignette"></div>
+  </div>
+
+  <header class="inner-header">
+    <a href="inner.html" class="nav-link">← 返回</a>
+    <div class="header-center">🎬 影视推荐</div>
+    <span style="width:60px"></span>
+  </header>
+
+  <main class="movies-content">
+    <div class="movies-hero">
+      <h1>一起看电影</h1>
+      <p class="movies-desc">搜索影视，记录我们的观影与评分</p>
+    </div>
+
+    <div class="search-wrap">
+      <input type="text" id="movieSearch" placeholder="输入电影/剧集名称搜索..." class="movie-search-input">
+      <button type="button" id="movieSearchBtn" class="movie-search-btn">搜索</button>
+    </div>
+
+    <div class="movies-tabs">
+      <button type="button" class="movies-tab active" data-tab="want">想看</button>
+      <button type="button" class="movies-tab" data-tab="watched">已看</button>
+      <button type="button" class="movies-tab" data-tab="search">搜索</button>
+    </div>
+
+    <div class="movies-panel movies-panel-want" id="panelWant">
+      <div class="movies-list" id="moviesListWant"></div>
+      <div class="movies-empty hidden" id="moviesEmptyWant"><p>还没有想看的影视</p></div>
+    </div>
+    <div class="movies-panel movies-panel-watched hidden" id="panelWatched">
+      <div class="movies-list" id="moviesListWatched"></div>
+      <div class="movies-empty hidden" id="moviesEmptyWatched"><p>还没有已看的影视</p></div>
+    </div>
+    <div class="movies-panel movies-panel-search hidden" id="panelSearch">
+      <div class="search-result-wrap" id="searchResultWrap">
+        <p class="search-hint" id="searchHint">输入关键词搜索后显示结果</p>
+        <div class="search-result hidden" id="searchResult"></div>
+      </div>
+    </div>
+  </main>
+
+  <div class="movie-modal hidden" id="movieModal">
+    <div class="movie-modal-backdrop" id="modalBackdrop"></div>
+    <div class="movie-modal-content" id="modalContent"></div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="https://static.cloudbase.net/cloudbase-js-sdk/latest/cloudbase.full.js"></script>
+  <script src="js/cloudbase.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/inner.js"></script>
+  <script src="js/movies.js"></script>
+</body>
+</html>

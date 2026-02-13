@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>个人空间 - 恋爱秘密基地</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/inner.css">
+  <link rel="stylesheet" href="css/modules.css">
+  <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="inner-page module-page">
+  <div class="background-container">
+    <div class="background-image inner-bg" id="profileBg"></div>
+    <div class="aurora aurora-1"></div>
+    <div class="aurora aurora-2"></div>
+    <div class="gradient-vignette"></div>
+  </div>
+
+  <header class="inner-header">
+    <a href="feed.html" class="nav-link">← 返回</a>
+    <div class="header-center">个人空间</div>
+    <a href="profile-edit.html" class="nav-link" id="editLink">编辑</a>
+  </header>
+
+  <main class="profile-content">
+    <div class="profile-card" id="profileCard">
+      <div class="profile-avatar-wrap">
+        <div class="profile-avatar" id="profileAvatar">?</div>
+      </div>
+      <h1 class="profile-name" id="profileName">-</h1>
+      <p class="profile-bio" id="profileBio"></p>
+    </div>
+    <div class="profile-posts">
+      <h3><span id="postsTitle">TA的分享</span></h3>
+      <div class="profile-feed" id="profileFeed"></div>
+    </div>
+  </main>
+
+  <div class="img-lightbox" id="imgLightbox">
+    <button type="button" class="lightbox-close" id="lightboxClose">×</button>
+    <img id="lightboxImg" alt="">
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="https://static.cloudbase.net/cloudbase-js-sdk/latest/cloudbase.full.js"></script>
+  <script src="js/cloudbase.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/inner.js"></script>
+  <script src="js/profile.js"></script>
+</body>
+</html>
