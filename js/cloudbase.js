@@ -7,10 +7,11 @@
     'loveBase_games', 'loveBase_travelPlaces', 'loveBase_todos', 'loveBase_wishes'
   ];
   const CLOUD_COLLECTION = 'LoveBase';
+  const CHUNK_SIZE = 800000; // 单条文档约 1MB 限制，分块 800KB 留余量
 
   let cache = {};
   let saveTimer = null;
-  let pendingKeys = new Set(); // 只保存有变更的 key，减少请求量和超时
+  let pendingKeys = new Set();
 
   function useCloud() {
     return typeof TENCENT_ENV_ID === 'string' && TENCENT_ENV_ID.length > 0;
@@ -34,21 +35,28 @@
     try {
       const db = window.__cloudbaseApp.database();
       const col = db.collection(CLOUD_COLLECTION);
-      const res = await col.limit(100).get();
+      const res = await col.limit(200).get();
+      const docs = res.data || [];
       const data = {};
       const byKey = {};
-      (res.data || []).forEach(doc => {
+      docs.forEach(doc => {
         const k = doc.key || doc._id;
         if (!k) return;
         const updated = doc._updatedAt || 0;
-        if (!byKey[k] || updated > (byKey[k]._updatedAt || 0)) {
-          byKey[k] = doc;
-        }
+        if (!byKey[k] || updated > (byKey[k]._updatedAt || 0)) byKey[k] = doc;
       });
-      Object.keys(byKey).forEach(k => {
-        const doc = byKey[k];
-        const v = doc.value;
-        if (v !== undefined) data[k] = typeof v === 'string' ? v : JSON.stringify(v);
+      CLOUD_KEYS.forEach(base => {
+        const single = byKey[base];
+        const partKeys = Object.keys(byKey).filter(x => x.startsWith(base + '_') && /_\d+$/.test(x));
+        const singleTs = single && single._updatedAt ? single._updatedAt : 0;
+        const chunkTs = partKeys.length ? Math.max(...partKeys.map(pk => (byKey[pk] && byKey[pk]._updatedAt) || 0)) : 0;
+        if (partKeys.length && chunkTs >= singleTs) {
+          partKeys.sort((a, b) => (parseInt(a.split('_').pop(), 10) || 0) - (parseInt(b.split('_').pop(), 10) || 0));
+          const parts = partKeys.map(pk => byKey[pk] && byKey[pk].value).filter(Boolean);
+          if (parts.length) data[base] = parts.join('');
+        } else if (single && single.value !== undefined) {
+          data[base] = typeof single.value === 'string' ? single.value : JSON.stringify(single.value);
+        }
       });
       if (Object.keys(data).length > 0) {
         saveToLocal(data);
@@ -73,15 +81,23 @@
       for (const key of keysToSave) {
         const val = data[key];
         if (val === undefined) continue;
-        if (typeof val === 'string' && val.length > 900000) {
-          console.warn('腾讯云 单条数据过大(' + (val.length/1024).toFixed(0) + 'KB)，可能超时，建议减少语音/图片');
-        }
+        const strVal = typeof val === 'string' ? val : JSON.stringify(val);
         const docId = key.replace(/[^a-zA-Z0-9_-]/g, '_') || 'k';
-        await col.doc(docId).set({
-          key: key,
-          value: val,
-          _updatedAt: Date.now()
-        });
+        const ts = Date.now();
+        if (strVal.length <= CHUNK_SIZE) {
+          await col.doc(docId).set({ key: key, value: strVal, _updatedAt: ts });
+        } else {
+          const chunks = [];
+          for (let i = 0; i < strVal.length; i += CHUNK_SIZE) {
+            chunks.push(strVal.slice(i, i + CHUNK_SIZE));
+          }
+          try { await col.doc(docId).remove(); } catch (_) {}
+          for (let i = 0; i < chunks.length; i++) {
+            const chunkId = docId + '_' + i;
+            await col.doc(chunkId).set({ key: chunkId, value: chunks[i], _updatedAt: ts });
+          }
+          console.log('腾讯云 大文档已分', chunks.length, '块保存:', key);
+        }
       }
       console.log('腾讯云 保存成功，共', keysToSave.length, '条:', keysToSave.join(', '));
       // 保存后立即读回验证
