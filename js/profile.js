@@ -10,8 +10,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const userId = params.get('user') || getCurrentUser().id;
   const isSelf = userId === getCurrentUser().id;
 
-  const _store = () => (window.CloudStorage || localStorage);
-  const savedBg = (_store().getItem('loveBase_bgImageInner') || '') || _store().getItem('loveBase_bgImage') || DEFAULT_BG;
+  const savedBg = (localStorage.getItem('loveBase_bgImageInner') || '') || localStorage.getItem('loveBase_bgImage') || DEFAULT_BG;
   document.getElementById('profileBg').style.backgroundImage = `url('${savedBg}')`;
 
   const editLink = document.getElementById('editLink');

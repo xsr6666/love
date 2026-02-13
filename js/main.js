@@ -4,9 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const bgVideoWrap = document.getElementById('bgVideoWrap');
   const bgVideo = document.getElementById('bgVideo');
 
-  const _store = () => (window.CloudStorage || localStorage);
-  const savedBg = _store().getItem('loveBase_bgImage') || DEFAULT_BG;
-  const savedVideo = _store().getItem('loveBase_bgVideo') || DEFAULT_BG_VIDEO;
+  const savedBg = localStorage.getItem('loveBase_bgImage') || DEFAULT_BG;
+  const savedVideo = localStorage.getItem('loveBase_bgVideo') || DEFAULT_BG_VIDEO;
 
   // 优先使用视频背景
   if (savedVideo && isVideoUrl(savedVideo)) {

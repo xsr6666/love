@@ -18,8 +18,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const publishBtn = document.getElementById('publishBtn');
   const visibilityToggle = document.getElementById('visibilityToggle');
 
-  const _store = () => (window.CloudStorage || localStorage);
-  const savedBg = (_store().getItem('loveBase_bgImageInner') || '') || _store().getItem('loveBase_bgImage') || DEFAULT_BG;
+  const savedBg = (localStorage.getItem('loveBase_bgImageInner') || '') || localStorage.getItem('loveBase_bgImage') || DEFAULT_BG;
   document.getElementById('postBg').style.backgroundImage = `url('${savedBg}')`;
 
   let imageList = [];

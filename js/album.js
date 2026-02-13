@@ -6,8 +6,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     return;
   }
 
-  const _store = () => (window.CloudStorage || localStorage);
-  const savedBg = (_store().getItem('loveBase_bgImageInner') || '') || _store().getItem('loveBase_bgImage') || DEFAULT_BG;
+  const savedBg = (localStorage.getItem('loveBase_bgImageInner') || '') || localStorage.getItem('loveBase_bgImage') || DEFAULT_BG;
   const bgEl = document.getElementById('albumBg');
   if (bgEl) bgEl.style.backgroundImage = `url('${savedBg}')`;
 

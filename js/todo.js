@@ -11,8 +11,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     return;
   }
 
-  const _store = () => (window.CloudStorage || localStorage);
-  const savedBg = (_store().getItem('loveBase_bgImageInner') || '') || _store().getItem('loveBase_bgImage') || DEFAULT_BG;
+  const savedBg = (localStorage.getItem('loveBase_bgImageInner') || '') || localStorage.getItem('loveBase_bgImage') || DEFAULT_BG;
   const bg = document.getElementById('todoBg');
   if (bg) bg.style.backgroundImage = `url('${savedBg}')`;
 

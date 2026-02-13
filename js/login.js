@@ -10,8 +10,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const setupBtn = document.getElementById('setupBtn');
 
   // 背景
-  const _store = () => (window.CloudStorage || localStorage);
-  const savedBg = (_store().getItem('loveBase_bgImageInner') || '') || _store().getItem('loveBase_bgImage') || DEFAULT_BG;
+  const savedBg = (localStorage.getItem('loveBase_bgImageInner') || '') || localStorage.getItem('loveBase_bgImage') || DEFAULT_BG;
   document.getElementById('loginBg').style.backgroundImage = `url('${savedBg}')`;
 
   let selectedUserId = null;

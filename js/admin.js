@@ -1,10 +1,9 @@
-// 管理后台逻辑（背景等通过 CloudStorage 同步到云端）
+// 管理后台逻辑
 const STORAGE_KEY = 'loveBase_adminPassword';
 const BG_KEY = 'loveBase_bgImage';
 const BG_INNER_KEY = 'loveBase_bgImageInner';
 const BG_VIDEO_KEY = 'loveBase_bgVideo';
 const OMDB_KEY = 'loveBase_omdbKey';
-const _store = () => (window.CloudStorage || localStorage);
 
 const loginBox = document.getElementById('loginBox');
 const dashboard = document.getElementById('dashboard');
@@ -86,7 +85,7 @@ passwordInput.addEventListener('keypress', (e) => {
 saveUrlBtn.addEventListener('click', () => {
   const url = bgUrlInput.value.trim();
   if (!url) { alert('请输入图片链接'); return; }
-  _store().setItem(BG_KEY, url);
+  localStorage.setItem(BG_KEY, url);
   alert('保存成功');
   loadCurrent();
 });
@@ -94,7 +93,7 @@ saveUrlBtn.addEventListener('click', () => {
 // 保存 OMDB Key
 saveOmdbBtn?.addEventListener('click', () => {
   const key = omdbKeyInput?.value?.trim() || '';
-  _store().setItem(OMDB_KEY, key);
+  localStorage.setItem(OMDB_KEY, key);
   alert(key ? '已保存' : '已清除');
   loadCurrent();
 });
@@ -103,7 +102,7 @@ saveOmdbBtn?.addEventListener('click', () => {
 saveVideoBtn.addEventListener('click', () => {
   const url = bgVideoInput.value.trim();
   if (!url) { alert('请输入视频链接'); return; }
-  _store().setItem(BG_VIDEO_KEY, url);
+  localStorage.setItem(BG_VIDEO_KEY, url);
   alert('保存成功，视频将作为动态背景');
   loadCurrent();
 });
@@ -115,7 +114,7 @@ resetLoveBtn?.addEventListener('click', () => {
 });
 
 clearVideoBtn.addEventListener('click', () => {
-  _store().removeItem(BG_VIDEO_KEY);
+  localStorage.removeItem(BG_VIDEO_KEY);
   bgVideoInput.value = '';
   alert('已清除，将使用图片背景');
   loadCurrent();
@@ -123,7 +122,7 @@ clearVideoBtn.addEventListener('click', () => {
 
 // 清除图片，恢复默认
 clearImageBtn.addEventListener('click', () => {
-  _store().removeItem(BG_KEY);
+  localStorage.removeItem(BG_KEY);
   bgUrlInput.value = DEFAULT_BG;
   alert('已清除，已恢复默认背景');
   loadCurrent();
@@ -133,13 +132,13 @@ clearImageBtn.addEventListener('click', () => {
 saveInnerUrlBtn.addEventListener('click', () => {
   const url = bgInnerUrlInput.value.trim();
   if (!url) { alert('请输入图片链接'); return; }
-  _store().setItem(BG_INNER_KEY, url);
+  localStorage.setItem(BG_INNER_KEY, url);
   alert('保存成功');
   loadCurrent();
 });
 
 clearInnerImageBtn.addEventListener('click', () => {
-  _store().removeItem(BG_INNER_KEY);
+  localStorage.removeItem(BG_INNER_KEY);
   bgInnerUrlInput.value = '';
   alert('已清除，内页将使用首页背景');
   loadCurrent();
@@ -164,7 +163,7 @@ fileInnerInput.addEventListener('change', (e) => {
 function handleInnerFile(file) {
   const reader = new FileReader();
   reader.onload = (e) => {
-    _store().setItem(BG_INNER_KEY, e.target.result);
+    localStorage.setItem(BG_INNER_KEY, e.target.result);
     alert('上传成功');
     loadCurrent();
   };
@@ -172,10 +171,10 @@ function handleInnerFile(file) {
 }
 
 function loadCurrent() {
-  const url = _store().getItem(BG_KEY) || DEFAULT_BG;
-  const urlInner = _store().getItem(BG_INNER_KEY) || '';
-  const video = _store().getItem(BG_VIDEO_KEY) || '';
-  const omdb = _store().getItem(OMDB_KEY) || '';
+  const url = localStorage.getItem(BG_KEY) || DEFAULT_BG;
+  const urlInner = localStorage.getItem(BG_INNER_KEY) || '';
+  const video = localStorage.getItem(BG_VIDEO_KEY) || '';
+  const omdb = localStorage.getItem(OMDB_KEY) || '';
   bgUrlInput.value = url;
   bgInnerUrlInput.value = urlInner;
   bgVideoInput.value = video;
@@ -220,7 +219,7 @@ fileInput.addEventListener('change', (e) => {
 function handleFile(file) {
   const reader = new FileReader();
   reader.onload = (e) => {
-    _store().setItem(BG_KEY, e.target.result);
+    localStorage.setItem(BG_KEY, e.target.result);
     alert('上传成功');
     loadCurrent();
   };

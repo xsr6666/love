@@ -4,8 +4,7 @@
     'loveBase_users', 'loveBase_posts', 'loveBase_setupDone', 'loveBase_currentUser',
     'loveBase_loveDays', 'loveBase_lastCheckIn', 'loveBase_checkIns',
     'loveBase_messages', 'loveBase_chat', 'loveBase_albums', 'loveBase_movies',
-    'loveBase_games', 'loveBase_travelPlaces', 'loveBase_todos', 'loveBase_wishes',
-    'loveBase_bgImage', 'loveBase_bgImageInner', 'loveBase_bgVideo', 'loveBase_omdbKey'
+    'loveBase_games', 'loveBase_travelPlaces', 'loveBase_todos', 'loveBase_wishes'
   ];
   const CLOUD_COLLECTION = 'LoveBase';
 
@@ -56,14 +55,23 @@
       const app = window.__cloudbaseApp;
       if (!app) return;
       const data = loadFromLocal();
+      const toSave = Object.keys(data).filter(k => CLOUD_KEYS.includes(k));
+      if (toSave.length === 0) {
+        console.log('腾讯云 无数据需保存');
+        return;
+      }
       const db = app.database();
       const col = db.collection(CLOUD_COLLECTION);
-      for (const key of Object.keys(data)) {
-        if (!CLOUD_KEYS.includes(key)) continue;
+      for (const key of toSave) {
         const docId = key.replace(/[^a-zA-Z0-9_-]/g, '_') || 'k';
         await col.doc(docId).set({ key: key, value: data[key] });
       }
-      console.log('腾讯云 保存成功');
+      console.log('腾讯云 保存成功，共', toSave.length, '条:', toSave.join(', '));
+      // 验证：读回第一条确认写入
+      const check = await col.doc(toSave[0].replace(/[^a-zA-Z0-9_-]/g, '_') || 'k').get();
+      if (!check.data || check.data.length === 0) {
+        console.warn('腾讯云 验证失败：写入后无法读取，请检查控制台是否在「数据库→集合」查看');
+      }
     } catch (e) {
       console.warn('腾讯云 保存失败:', e.message, e);
     }

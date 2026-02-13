@@ -1,6 +1,21 @@
-/* ===== 移动端响应式布局 ===== */
-/* 防止横向滚动、适配小屏 */
+/* ===== 移动端适配 - 防止布局乱掉 ===== */
+/* 基础防溢出 */
 @media (max-width: 768px) {
+  .content {
+    padding: 1.5rem 1rem !important;
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .post-video video,
+  .post-pick-video video,
+  .album-item img {
+    max-width: 100%;
+  }
+
   html, body {
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
@@ -10,7 +25,7 @@
     min-width: 0;
   }
 
-  /* 内页主内容区 */
+  /* 内页主内容 */
   .inner-content {
     padding: 4rem 1rem 3rem !important;
     max-width: 100% !important;
@@ -22,7 +37,7 @@
     padding-right: 1rem !important;
   }
 
-  /* 头部导航 - 紧凑 */
+  /* 头部导航 */
   .inner-header {
     padding: 0.4rem 0.6rem !important;
     flex-wrap: wrap;
@@ -55,7 +70,7 @@
     padding: 0.35rem 0.5rem;
   }
 
-  /* 侧边图标 - 缩小并避免遮挡 */
+  /* 侧边图标 - 缩小移到底部 */
   .side-icon {
     width: 52px !important;
     height: 52px !important;
@@ -64,21 +79,10 @@
     transform: none !important;
   }
 
-  .side-icon-left {
-    left: 0.5rem !important;
-  }
-
-  .side-icon-right {
-    right: 0.5rem !important;
-  }
-
-  .side-icon:hover {
-    transform: scale(1.05) !important;
-  }
-
-  .side-icon-emoji {
-    font-size: 1.6rem !important;
-  }
+  .side-icon-left { left: 0.5rem !important; }
+  .side-icon-right { right: 0.5rem !important; }
+  .side-icon:hover { transform: scale(1.05) !important; }
+  .side-icon-emoji { font-size: 1.6rem !important; }
 
   /* 携手计时 + 打卡 - 垂直堆叠 */
   .hero-row {
@@ -93,10 +97,7 @@
     padding: 1rem 1.2rem !important;
   }
 
-  .hero-side {
-    width: 100%;
-  }
-
+  .hero-side { width: 100%; }
   .checkin-card-mini {
     min-width: 0 !important;
     width: 100%;
@@ -104,15 +105,10 @@
     padding: 1rem 1.2rem !important;
   }
 
-  .timer-display {
-    font-size: 0.95rem !important;
-  }
+  .timer-display { font-size: 0.95rem !important; }
+  .timer-display span { min-width: 1.5em !important; }
 
-  .timer-display span {
-    min-width: 1.5em !important;
-  }
-
-  /* 留言板表单 - 垂直排列，话筒和发送各占一行 */
+  /* 留言板表单 - 垂直排列 */
   .message-form {
     flex-direction: column !important;
     gap: 0.8rem;
@@ -139,17 +135,14 @@
     margin-bottom: 1rem;
   }
 
-  /* 动态分享/留言区域 */
-  .feed-scroll {
-    max-height: 260px;
-  }
-
+  /* 动态分享 */
+  .feed-scroll { max-height: 260px; }
   .feed-item-mini .post-img-mini {
     width: 64px !important;
     height: 64px !important;
   }
 
-  /* 弹窗 - 全屏或接近全屏 */
+  /* 弹窗 */
   .chat-popup,
   .music-popup {
     padding: 0.5rem !important;
@@ -164,19 +157,22 @@
     padding: 1rem !important;
   }
 
-  .chat-form,
-  .music-search-row {
-    flex-wrap: wrap;
-  }
-
-  .chat-form input,
-  .music-search-row input {
+  /* 卡片通用 */
+  .hero-timer,
+  .checkin-card-mini,
+  .feed-card,
+  .message-board,
+  .rec-card {
     min-width: 0;
   }
 
-  .chat-send,
-  .music-search-row button {
-    min-height: 44px;
+  .section-header {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .section-header h3 {
+    word-break: break-word;
   }
 }
 
@@ -198,10 +194,7 @@
     margin: 0 0.5rem;
   }
 
-  .post-form {
-    padding: 1rem !important;
-  }
-
+  .post-form { padding: 1rem !important; }
   .post-options-row {
     flex-direction: column;
     align-items: stretch;
@@ -221,72 +214,39 @@
     gap: 0.6rem !important;
   }
 
-  .album-grid-wrap {
-    padding: 1rem !important;
-  }
+  .album-grid-wrap { padding: 1rem !important; }
+  .profile-card { padding: 1.5rem !important; }
+  .edit-form { padding: 1.5rem !important; }
 
-  .profile-card {
-    padding: 1.5rem !important;
-  }
-
-  .edit-form {
-    padding: 1.5rem !important;
-  }
-
-  .message-form-full textarea {
-    padding: 1rem !important;
-  }
-
-  .message-form-actions {
-    flex-direction: column;
-  }
-
+  .message-form-full textarea { padding: 1rem !important; }
+  .message-form-actions { flex-direction: column; }
   .msg-send-btn-full,
-  .msg-voice-btn-full {
-    min-height: 48px;
-  }
+  .msg-voice-btn-full { min-height: 48px; }
 
   /* 帖子卡片 */
-  .post-card {
-    padding: 1rem 1.2rem !important;
-  }
-
-  .post-header {
-    flex-wrap: wrap;
-  }
-
+  .post-card { padding: 1rem 1.2rem !important; }
+  .post-header { flex-wrap: wrap; }
   .post-images {
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 0.4rem !important;
   }
-
-  .post-image {
-    min-width: 0;
-  }
+  .post-image { min-width: 0; }
 }
 
 /* 管理后台 */
 @media (max-width: 768px) {
-  .admin-container {
-    padding: 1rem !important;
-  }
-
-  .dashboard {
-    padding: 1.2rem !important;
-  }
-
+  .admin-container { padding: 1rem !important; }
+  .dashboard { padding: 1.2rem !important; }
   .dashboard .form-row,
   .dashboard .input-group {
     flex-direction: column !important;
   }
-
   .dashboard .form-row input,
   .dashboard .form-row button,
   .dashboard .input-group input,
   .dashboard .input-group button {
     width: 100% !important;
   }
-
   .preview img,
   .previewInner img {
     max-width: 100%;
@@ -303,14 +263,9 @@
     max-width: 100% !important;
   }
 
-  .search-wrap {
-    flex-direction: column;
-  }
-
+  .search-wrap { flex-direction: column; }
   .movie-search-input,
-  .movie-search-btn {
-    width: 100%;
-  }
+  .movie-search-btn { width: 100%; }
 
   .game-card {
     flex-direction: column;
@@ -324,14 +279,9 @@
     height: 160px;
   }
 
-  .todo-calendar {
-    gap: 2px;
-  }
-
+  .todo-calendar { gap: 2px; }
   .cal-weekday,
-  .cal-day {
-    font-size: 0.75rem;
-  }
+  .cal-day { font-size: 0.75rem; }
 }
 
 /* 旅行地图 */
@@ -341,44 +291,31 @@
     max-width: 100% !important;
   }
 
-  .travel-map-wrap {
-    padding: 1rem !important;
-  }
-
-  .travel-map {
-    height: 320px !important;
-  }
-
+  .travel-map-wrap { padding: 1rem !important; }
+  .travel-map { height: 320px !important; }
   .travel-map-controls {
     flex-wrap: wrap;
     gap: 0.5rem;
   }
-
   .map-ctrl-btn {
     flex: 1;
     min-width: 80px;
   }
 }
 
-/* 超小屏 (如 iPhone SE) */
+/* 超小屏 */
 @media (max-width: 380px) {
   .inner-content {
     padding: 3.5rem 0.75rem 2rem !important;
   }
 
-  .hero-timer {
-    padding: 0.8rem 1rem !important;
-  }
-
+  .hero-timer { padding: 0.8rem 1rem !important; }
   .dashboard-title {
     font-size: 1.4rem !important;
     letter-spacing: 0.1em !important;
   }
 
-  .header-nav .nav-link {
-    font-size: 0.85rem !important;
-  }
-
+  .header-nav .nav-link { font-size: 0.85rem !important; }
   .side-icon {
     width: 44px !important;
     height: 44px !important;
@@ -386,24 +323,20 @@
   }
 }
 
-/* 安全区域 - 避免刘海/底部横条遮挡 */
+/* 安全区域 */
 @supports (padding: max(0px, env(safe-area-inset-bottom))) {
   .inner-content {
     padding-bottom: max(2rem, env(safe-area-inset-bottom)) !important;
   }
-
   .side-icon-left {
     left: max(0.5rem, env(safe-area-inset-left)) !important;
   }
-
   .side-icon-right {
     right: max(0.5rem, env(safe-area-inset-right)) !important;
   }
-
   .side-icon {
     bottom: max(1rem, env(safe-area-inset-bottom)) !important;
   }
-
   .inner-header {
     padding-top: max(0.4rem, env(safe-area-inset-top)) !important;
   }
