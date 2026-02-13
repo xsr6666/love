@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>发布 - 恋爱秘密基地</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/inner.css">
+  <link rel="stylesheet" href="css/modules.css">
+  <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="inner-page module-page">
+  <div class="background-container">
+    <div class="background-image inner-bg" id="postBg"></div>
+    <div class="aurora aurora-1"></div>
+    <div class="aurora aurora-2"></div>
+    <div class="gradient-vignette"></div>
+  </div>
+
+  <header class="inner-header">
+    <a href="feed.html" class="nav-link">← 取消</a>
+    <div class="header-center">发布点滴</div>
+    <button type="button" class="nav-link btn-text" id="publishBtn">发布</button>
+  </header>
+
+  <main class="post-form-wrap">
+    <div class="post-form">
+      <textarea id="postText" placeholder="分享你的想法..." rows="4"></textarea>
+      <div class="post-options-row">
+        <div class="post-option-group">
+          <span class="option-label">相册</span>
+          <select id="albumSelect" class="album-select"></select>
+        </div>
+        <button type="button" id="visibilityToggle" class="visibility-btn">🌐 公开</button>
+      </div>
+      <label class="post-pick-image" id="pickImage">
+        <input type="file" id="postImageInput" accept="image/*" multiple>
+        <span class="pick-placeholder" id="pickPlaceholder">+ 添加照片（可多选）</span>
+        <div class="preview-grid" id="previewGrid"></div>
+      </label>
+      <label class="post-pick-video" id="pickVideo">
+        <input type="file" id="postVideoInput" accept="video/*">
+        <span class="pick-placeholder" id="pickVideoPlaceholder">+ 添加视频</span>
+        <div class="preview-video" id="previewVideo"></div>
+      </label>
+    </div>
+  </main>
+
+  <script src="js/config.js"></script>
+  <script src="https://static.cloudbase.net/cloudbase-js-sdk/latest/cloudbase.full.js"></script>
+  <script src="js/cloudbase.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/inner.js"></script>
+  <script src="js/post.js"></script>
+</body>
+</html>

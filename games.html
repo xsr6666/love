@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>游戏推荐 - 恋爱秘密基地</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/inner.css">
+  <link rel="stylesheet" href="css/modules.css">
+  <link rel="stylesheet" href="css/games.css">
+  <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="inner-page module-page">
+  <div class="background-container">
+    <div class="bg-video-wrap inner-video hidden" id="bgVideoWrap">
+      <video class="bg-video" id="innerVideo" autoplay muted loop playsinline></video>
+    </div>
+    <div class="background-image inner-bg" id="gamesBg"></div>
+    <div class="aurora aurora-1"></div>
+    <div class="aurora aurora-2"></div>
+    <div class="gradient-vignette"></div>
+  </div>
+
+  <header class="inner-header">
+    <a href="inner.html" class="nav-link">← 返回</a>
+    <div class="header-center">🎮 游戏推荐</div>
+    <a href="#" class="nav-link" id="addGameBtn">+ 添加</a>
+  </header>
+
+  <main class="games-content">
+    <div class="games-hero">
+      <h1>一起玩游戏</h1>
+      <p class="games-desc">记录我们一起玩过的游戏</p>
+    </div>
+
+    <div class="games-list" id="gamesList"></div>
+    <div class="games-empty hidden" id="gamesEmpty">
+      <p>还没有添加游戏</p>
+      <p class="hint">点击右上角「+ 添加」添加游戏</p>
+    </div>
+  </main>
+
+  <div class="game-modal hidden" id="gameModal">
+    <div class="game-modal-backdrop" id="gameModalBackdrop"></div>
+    <div class="game-modal-content" id="gameModalContent"></div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="https://static.cloudbase.net/cloudbase-js-sdk/latest/cloudbase.full.js"></script>
+  <script src="js/cloudbase.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/inner.js"></script>
+  <script src="js/games.js"></script>
+</body>
+</html>

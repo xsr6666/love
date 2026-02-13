@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>登录 - 恋爱秘密基地</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/modules.css">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="module-page inner-page">
+  <div class="background-container">
+    <div class="background-image" id="loginBg"></div>
+    <div class="aurora aurora-1"></div>
+    <div class="aurora aurora-2"></div>
+    <div class="gradient-vignette"></div>
+  </div>
+
+  <div class="module-content" id="loginContent">
+    <!-- 首次设置 -->
+    <div id="setupBox" class="auth-box">
+      <h2>初次设置</h2>
+      <p class="hint">为你们创建两个账号</p>
+      <div class="setup-form">
+        <div class="user-setup">
+          <h4>账号一</h4>
+          <input type="text" id="name1" placeholder="昵称">
+          <input type="password" id="pwd1" placeholder="密码（至少4位）">
+          <input type="text" id="bio1" placeholder="个性签名（选填）">
+        </div>
+        <div class="user-setup">
+          <h4>账号二</h4>
+          <input type="text" id="name2" placeholder="昵称">
+          <input type="password" id="pwd2" placeholder="密码（至少4位）">
+          <input type="text" id="bio2" placeholder="个性签名（选填）">
+        </div>
+        <button type="button" id="setupBtn">完成设置</button>
+      </div>
+    </div>
+
+    <!-- 登录 -->
+    <div id="loginBox" class="auth-box hidden">
+      <h2>选择账号登录</h2>
+      <div class="user-choices" id="userChoices"></div>
+      <div id="pwdForm" class="hidden">
+        <input type="password" id="loginPwd" placeholder="输入密码">
+        <button type="button" id="loginBtn">登录</button>
+      </div>
+      <a href="index.html" class="back-link">← 返回首页</a>
+    </div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="https://static.cloudbase.net/cloudbase-js-sdk/latest/cloudbase.full.js"></script>
+  <script src="js/cloudbase.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/inner.js"></script>
+  <script src="js/login.js"></script>
+</body>
+</html>

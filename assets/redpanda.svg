@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="rpFur" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#e07b4a"/>
+      <stop offset="50%" style="stop-color:#c45c26"/>
+      <stop offset="100%" style="stop-color:#a04020"/>
+    </linearGradient>
+    <linearGradient id="rpFace" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#fffaf5"/>
+      <stop offset="100%" style="stop-color:#ffe8dc"/>
+    </linearGradient>
+    <linearGradient id="rpTail" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#c45c26"/>
+      <stop offset="20%" style="stop-color:#ffecd2"/>
+      <stop offset="40%" style="stop-color:#c45c26"/>
+      <stop offset="60%" style="stop-color:#ffecd2"/>
+      <stop offset="80%" style="stop-color:#c45c26"/>
+      <stop offset="100%" style="stop-color:#a04020"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="60" cy="78" rx="32" ry="26" fill="url(#rpFur)"/>
+  <ellipse cx="60" cy="80" rx="20" ry="16" fill="url(#rpFace)"/>
+  <circle cx="60" cy="40" r="28" fill="url(#rpFur)"/>
+  <path d="M35 38 Q50 42 60 50 Q70 42 85 38 Q75 55 60 62 Q45 55 35 38" fill="url(#rpFace)"/>
+  <path d="M45 42 L48 55" stroke="#c45c26" stroke-width="2" stroke-linecap="round"/>
+  <path d="M75 42 L72 55" stroke="#c45c26" stroke-width="2" stroke-linecap="round"/>
+  <path d="M32 18 L38 8 L44 18 Z" fill="url(#rpFur)"/>
+  <path d="M88 18 L82 8 L76 18 Z" fill="url(#rpFur)"/>
+  <path d="M34 16 L38 11 L42 16 Z" fill="#ffecd2"/>
+  <path d="M86 16 L82 11 L78 16 Z" fill="#ffecd2"/>
+  <ellipse cx="48" cy="42" rx="4" ry="5" fill="#2c1810"/>
+  <ellipse cx="72" cy="42" rx="4" ry="5" fill="#2c1810"/>
+  <circle cx="49" cy="40" r="1" fill="white"/>
+  <circle cx="73" cy="40" r="1" fill="white"/>
+  <ellipse cx="60" cy="52" rx="3" ry="2.5" fill="#2c1810"/>
+  <path d="M60 54 Q57 57 60 58 Q63 57 60 54" fill="#2c1810" opacity="0.7"/>
+  <ellipse cx="40" cy="92" rx="9" ry="12" fill="url(#rpFur)"/>
+  <ellipse cx="80" cy="92" rx="9" ry="12" fill="url(#rpFur)"/>
+  <path d="M88 65 Q105 45 108 25 Q112 40 102 58 Q96 72 88 78" fill="url(#rpTail)"/>
+  <path d="M90 68 Q98 55 100 45" stroke="#ffecd2" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <path d="M92 72 Q98 62 100 55" stroke="#ffecd2" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M94 76 Q98 70 99 66" stroke="#ffecd2" stroke-width="2" fill="none" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>代办 - 恋爱秘密基地</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/inner.css">
+  <link rel="stylesheet" href="css/modules.css">
+  <link rel="stylesheet" href="css/todo.css">
+  <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="inner-page module-page">
+  <div class="background-container">
+    <div class="background-image inner-bg" id="todoBg"></div>
+    <div class="aurora aurora-1"></div>
+    <div class="aurora aurora-2"></div>
+    <div class="gradient-vignette"></div>
+  </div>
+
+  <header class="inner-header">
+    <a href="inner.html" class="nav-link">← 返回</a>
+    <div class="header-center">📋 代办日历</div>
+    <span style="width:60px"></span>
+  </header>
+
+  <main class="todo-content">
+    <div class="todo-calendar-wrap">
+      <div class="todo-calendar-header">
+        <button type="button" class="cal-nav" id="calPrev">‹</button>
+        <h2 class="cal-title" id="calTitle">2025年1月</h2>
+        <button type="button" class="cal-nav" id="calNext">›</button>
+      </div>
+      <div class="todo-calendar" id="todoCalendar"></div>
+    </div>
+
+    <div class="todo-panel">
+      <div class="todo-panel-tabs">
+        <button type="button" class="todo-tab active" data-tab="pending">待办</button>
+        <button type="button" class="todo-tab" data-tab="done">已完成</button>
+        <button type="button" class="todo-tab" data-tab="wish">想做的事</button>
+      </div>
+      <div class="todo-list" id="todoList"></div>
+      <div class="todo-add-form">
+        <input type="text" id="todoInput" placeholder="添加待办...">
+        <div class="todo-add-options">
+          <select id="todoPriority" title="优先级">
+            <option value="1">低</option>
+            <option value="2" selected>中</option>
+            <option value="3">高</option>
+          </select>
+          <select id="todoAssign" title="谁来做"></select>
+        </div>
+        <div class="todo-add-wrap">
+          <input type="date" id="todoDueDate" title="截止日期">
+          <button type="button" id="todoAddBtn">添加</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="todo-day-modal hidden" id="dayModal">
+      <div class="todo-modal-backdrop" id="dayModalBackdrop"></div>
+      <div class="todo-modal-content" id="dayModalContent"></div>
+    </div>
+  </main>
+
+  <script src="js/config.js"></script>
+  <script src="https://static.cloudbase.net/cloudbase-js-sdk/latest/cloudbase.full.js"></script>
+  <script src="js/cloudbase.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/inner.js"></script>
+  <script src="js/todo.js"></script>
+</body>
+</html>
