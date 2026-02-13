@@ -11,8 +11,6 @@
 
   let cache = {};
   let saveTimer = null;
-  /** 超出 localStorage 配额的数据，仅存内存，避免写入失败 */
-  let overflowKeys = {};
 
   function useCloud() {
     return typeof TENCENT_ENV_ID === 'string' && TENCENT_ENV_ID.length > 0;
@@ -21,22 +19,14 @@
   function loadFromLocal() {
     const data = {};
     CLOUD_KEYS.forEach(k => {
-      const v = overflowKeys[k] !== undefined ? overflowKeys[k] : localStorage.getItem(k);
-      if (v !== null && v !== undefined) data[k] = v;
+      const v = localStorage.getItem(k);
+      if (v !== null) data[k] = v;
     });
     return data;
   }
 
   function saveToLocal(data) {
-    Object.keys(data).forEach(k => {
-      try {
-        localStorage.setItem(k, data[k]);
-        delete overflowKeys[k];
-      } catch (e) {
-        overflowKeys[k] = data[k];
-        console.warn('本地存储超限，已暂存内存:', k, '(约', Math.round((data[k].length || 0) / 1024), 'KB)');
-      }
-    });
+    Object.keys(data).forEach(k => localStorage.setItem(k, data[k]));
   }
 
   async function loadFromCloud() {
@@ -110,22 +100,16 @@
 
   window.CloudStorage = {
     getItem: function(key) {
-      const v = cache[key] !== undefined ? cache[key] : (overflowKeys[key] !== undefined ? overflowKeys[key] : localStorage.getItem(key));
+      const v = cache[key] !== undefined ? cache[key] : localStorage.getItem(key);
       return v;
     },
     setItem: function(key, val) {
       cache[key] = val;
-      try {
-        localStorage.setItem(key, val);
-        delete overflowKeys[key];
-      } catch (e) {
-        overflowKeys[key] = val;
-      }
+      localStorage.setItem(key, val);
       if (useCloud() && CLOUD_KEYS.includes(key)) debouncedSave();
     },
     removeItem: function(key) {
       delete cache[key];
-      delete overflowKeys[key];
       localStorage.removeItem(key);
       if (useCloud() && CLOUD_KEYS.includes(key)) debouncedSave();
     }
