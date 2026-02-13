@@ -36,10 +36,19 @@
       const col = db.collection(CLOUD_COLLECTION);
       const res = await col.limit(100).get();
       const data = {};
+      const byKey = {};
       (res.data || []).forEach(doc => {
         const k = doc.key || doc._id;
+        if (!k) return;
+        const updated = doc._updatedAt || 0;
+        if (!byKey[k] || updated > (byKey[k]._updatedAt || 0)) {
+          byKey[k] = doc;
+        }
+      });
+      Object.keys(byKey).forEach(k => {
+        const doc = byKey[k];
         const v = doc.value;
-        if (k && v !== undefined) data[k] = typeof v === 'string' ? v : JSON.stringify(v);
+        if (v !== undefined) data[k] = typeof v === 'string' ? v : JSON.stringify(v);
       });
       if (Object.keys(data).length > 0) {
         saveToLocal(data);
@@ -68,7 +77,11 @@
           console.warn('腾讯云 单条数据过大(' + (val.length/1024).toFixed(0) + 'KB)，可能超时，建议减少语音/图片');
         }
         const docId = key.replace(/[^a-zA-Z0-9_-]/g, '_') || 'k';
-        await col.doc(docId).set({ key: key, value: val });
+        await col.doc(docId).set({
+          key: key,
+          value: val,
+          _updatedAt: Date.now()
+        });
       }
       console.log('腾讯云 保存成功，共', keysToSave.length, '条:', keysToSave.join(', '));
       // 保存后立即读回验证
