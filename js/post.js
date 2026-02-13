@@ -48,6 +48,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const imageFiles = files.filter(f => f.type.startsWith('image/'));
     if (!imageFiles.length) return;
 
+    let loaded = 0;
     imageFiles.forEach(file => {
       const reader = new FileReader();
       reader.onload = (ev) => {
