@@ -27,7 +27,13 @@
   }
 
   function saveToLocal(data) {
-    Object.keys(data).forEach(k => localStorage.setItem(k, data[k]));
+    Object.keys(data).forEach(k => {
+      try {
+        localStorage.setItem(k, data[k]);
+      } catch (e) {
+        console.warn('本地存储空间不足，跳过本地回写:', k, e && e.message);
+      }
+    });
   }
 
   async function loadFromCloud() {
@@ -75,11 +81,10 @@
       await window.StorageReady;
       const app = window.__cloudbaseApp;
       if (!app) return;
-      const data = loadFromLocal();
       const db = app.database();
       const col = db.collection(CLOUD_COLLECTION);
       for (const key of keysToSave) {
-        const val = data[key];
+        const val = cache[key] !== undefined ? cache[key] : localStorage.getItem(key);
         if (val === undefined) continue;
         const strVal = typeof val === 'string' ? val : JSON.stringify(val);
         const docId = key.replace(/[^a-zA-Z0-9_-]/g, '_') || 'k';
@@ -168,7 +173,11 @@
     },
     setItem: function(key, val) {
       cache[key] = val;
-      localStorage.setItem(key, val);
+      try {
+        localStorage.setItem(key, val);
+      } catch (e) {
+        console.warn('本地存储空间不足，已跳过本地写入，继续尝试云端同步:', key, e && e.message);
+      }
       if (useCloud() && CLOUD_KEYS.includes(key)) debouncedSave(key);
     },
     removeItem: function(key) {
