@@ -112,21 +112,28 @@
     min-width: 1.5em !important;
   }
 
-  /* 留言板表单 - 垂直排列 */
+  /* 留言板表单 - 话筒和发送各占一行 */
   .message-form {
     flex-direction: column !important;
-    gap: 0.6rem;
+    gap: 0.8rem;
   }
 
   .message-form textarea {
     min-height: 70px;
+    width: 100%;
   }
 
-  .message-form .msg-send-btn,
+  .message-form .msg-voice-btn,
+  .message-form .msg-send-btn {
+    width: 100% !important;
+    align-self: stretch !important;
+    padding: 0.9rem 1.2rem !important;
+    min-height: 48px !important;
+    font-size: 1rem !important;
+  }
+
   .message-form .msg-voice-btn {
-    align-self: flex-end;
-    padding: 0.7rem 1.2rem;
-    min-height: 44px;
+    font-size: 1.4rem !important;
   }
 
   /* 推荐卡片 - 单列 */
