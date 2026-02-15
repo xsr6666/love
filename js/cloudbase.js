@@ -96,14 +96,6 @@
       const docs = res.data || [];
       console.log('[云桥] 从云端加载了', docs.length, '条文档');
 
-      // ★ 诊断：打印每个原始文档的结构
-      docs.forEach((doc, i) => {
-        const valLen = doc.value !== undefined && doc.value !== null
-          ? (typeof doc.value === 'string' ? doc.value.length + '字符' : typeof doc.value)
-          : '(无value)';
-        console.log('[云桥] 原始文档[' + i + ']', '_id=' + doc._id, 'key=' + doc.key, 'value=' + valLen, 'updatedAt=' + (doc.updatedAt || doc._updatedAt || '无'));
-      });
-
       const data = {};
       const byKey = {};
       docs.forEach(doc => {
@@ -127,16 +119,6 @@
         } else if (single && single.value !== undefined) {
           data[base] = typeof single.value === 'string' ? single.value : JSON.stringify(single.value);
         }
-      });
-
-      // ★ 诊断：打印解析后每个 key 的数据情况
-      console.log('[云桥] ---- 解析结果 ----');
-      CLOUD_KEYS.forEach(base => {
-        const val = data[base];
-        const info = val !== undefined ? (val.length + '字符, 开头: ' + val.substring(0, 80)) : '(未从云端读到)';
-        const localVal = localStorage.getItem(base);
-        const localInfo = localVal !== null ? (localVal.length + '字符') : '(本地也无)';
-        console.log('[云桥]  ', base, '→ 云端:', info, '| 本地:', localInfo);
       });
 
       // 合并策略：本地有未同步的修改时，保留本地数据

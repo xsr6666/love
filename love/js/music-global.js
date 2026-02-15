@@ -1,4 +1,4 @@
-// 全局音乐播放器 - 让所有页面都能播放音乐
+// 全局音乐播放器 - 懒加载模式，点击按钮才加载依赖，不拖慢页面
 (function() {
   // inner.html 已自带音乐弹窗（通过 inner-modules.js），跳过
   if (document.getElementById('musicPopup')) return;
@@ -6,16 +6,10 @@
   var METING_API = 'https://api.qijieya.cn/meting/';
   var NCM_APIS = ['https://ncm.zhenxin.me', 'https://zm.i9mr.com', 'https://music.mcseekeri.com'];
   var DEFAULT_PLAYLIST = '2619366284';
+  var musicReady = false;
+  var musicLoading = false;
 
-  // 注入 APlayer CSS
-  if (!document.querySelector('link[href*="APlayer"]')) {
-    var link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = 'https://cdn.jsdelivr.net/npm/aplayer@1.10/dist/APlayer.min.css';
-    document.head.appendChild(link);
-  }
-
-  // 注入音乐按钮
+  // 注入音乐按钮（只创建 DOM，不发任何网络请求）
   var btn = document.createElement('button');
   btn.type = 'button';
   btn.className = 'side-icon side-icon-right';
@@ -24,7 +18,7 @@
   btn.innerHTML = '<img src="assets/phonograph.svg" alt="留声机" class="side-icon-img" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'block\'"><span class="side-icon-emoji" style="display:none">🎵</span>';
   document.body.appendChild(btn);
 
-  // 注入音乐弹窗
+  // 注入弹窗容器（空壳，内容按需填充）
   var popup = document.createElement('div');
   popup.className = 'music-popup';
   popup.id = 'musicPopup';
@@ -40,15 +34,23 @@
           '<input type="text" id="musicSearch" placeholder="搜索歌曲或歌单...">' +
           '<button type="button" id="musicSearchBtn">搜索</button>' +
         '</div>' +
-        '<div id="musicMetingContainer"></div>' +
+        '<div id="musicMetingContainer"><p style="text-align:center;color:rgba(255,255,255,0.6);padding:2rem 0;">加载中...</p></div>' +
       '</div>' +
     '</div>';
   document.body.appendChild(popup);
 
-  // 绑定打开/关闭事件
-  btn.addEventListener('click', function() { popup.classList.add('open'); });
+  // 关闭事件
   document.getElementById('musicClose').addEventListener('click', function() { popup.classList.remove('open'); });
   popup.addEventListener('click', function(e) { if (e.target === popup) popup.classList.remove('open'); });
+
+  // 点击按钮：打开弹窗 + 首次点击时懒加载
+  btn.addEventListener('click', function() {
+    popup.classList.add('open');
+    if (!musicReady && !musicLoading) {
+      musicLoading = true;
+      lazyInitMusic();
+    }
+  });
 
   // 动态加载脚本
   function loadScript(src) {
@@ -62,14 +64,18 @@
     });
   }
 
-  // 初始化音乐播放器
-  async function boot() {
+  // 懒加载：首次打开弹窗时才执行
+  async function lazyInitMusic() {
     try {
-      await (window.StorageReady || Promise.resolve());
-    } catch (_) {}
-    if (typeof isLoggedIn === 'function' && !isLoggedIn()) return;
+      // 1. 注入 APlayer CSS
+      if (!document.querySelector('link[href*="APlayer"]')) {
+        var link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://cdn.jsdelivr.net/npm/aplayer@1.10/dist/APlayer.min.css';
+        document.head.appendChild(link);
+      }
 
-    try {
+      // 2. 加载 JS 依赖
       if (!window.APlayer) {
         await loadScript('https://cdn.jsdelivr.net/npm/aplayer@1.10/dist/APlayer.min.js');
       }
@@ -77,10 +83,14 @@
         await loadScript('https://cdn.jsdelivr.net/npm/meting@2/dist/Meting.min.js');
       }
     } catch (e) {
-      console.warn('Music player dependencies load failed:', e);
+      console.warn('[音乐] 播放器依赖加载失败:', e);
+      var container = document.getElementById('musicMetingContainer');
+      if (container) container.innerHTML = '<p style="text-align:center;color:#f99;padding:2rem 0;">播放器加载失败，请刷新重试</p>';
+      musicLoading = false;
       return;
     }
 
+    // 3. 初始化播放器
     var container = document.getElementById('musicMetingContainer');
     if (!container) return;
 
@@ -93,6 +103,7 @@
 
     renderMeting('playlist', DEFAULT_PLAYLIST);
 
+    // 4. 搜索功能
     var searchInput = document.getElementById('musicSearch');
     var searchBtn = document.getElementById('musicSearchBtn');
 
@@ -158,12 +169,8 @@
 
     if (searchBtn) searchBtn.addEventListener('click', doSearch);
     if (searchInput) searchInput.addEventListener('keypress', function(e) { if (e.key === 'Enter') doSearch(); });
-  }
 
-  // 等待 DOM 和登录状态就绪后启动
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', boot);
-  } else {
-    boot();
+    musicReady = true;
+    musicLoading = false;
   }
 })();
