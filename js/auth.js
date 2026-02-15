@@ -1,5 +1,17 @@
 // 用户认证与数据管理（支持腾讯云开发云端存储）
 const _storage = () => window.CloudStorage || localStorage;
+
+// 安全的 JSON 解析：数据损坏（如 localStorage 配额溢出截断）时不崩溃
+function _safeParse(data, fallback) {
+  if (!data) return fallback;
+  try {
+    return JSON.parse(data);
+  } catch (e) {
+    console.warn('[数据] JSON 解析失败，使用默认值。数据长度:', data.length);
+    return fallback;
+  }
+}
+
 const STORAGE = {
   users: 'loveBase_users',
   posts: 'loveBase_posts',
@@ -20,7 +32,7 @@ const STORAGE = {
 
 function getUsers() {
   const data = _storage().getItem(STORAGE.users);
-  return data ? JSON.parse(data) : [];
+  return _safeParse(data, []);
 }
 
 function saveUsers(users) {
@@ -30,7 +42,7 @@ function saveUsers(users) {
 
 function getPosts() {
   const data = _storage().getItem(STORAGE.posts);
-  return data ? JSON.parse(data) : [];
+  return _safeParse(data, []);
 }
 
 function savePosts(posts) {
@@ -59,7 +71,10 @@ function isLoggedIn() {
 
 function getAlbums() {
   const data = _storage().getItem(STORAGE.albums);
-  if (data) return JSON.parse(data);
+  if (data) {
+    const parsed = _safeParse(data, null);
+    if (parsed) return parsed;
+  }
   return [{ id: 'default', name: '默认相册' }, { id: 'daily', name: '日常' }, { id: 'travel', name: '旅行' }, { id: 'food', name: '美食' }];
 }
 
@@ -69,7 +84,7 @@ function saveAlbums(albums) {
 
 function getMovies() {
   const data = _storage().getItem(STORAGE.movies);
-  return data ? JSON.parse(data) : [];
+  return _safeParse(data, []);
 }
 
 function saveMovies(movies) {
@@ -78,7 +93,7 @@ function saveMovies(movies) {
 
 function getGames() {
   const data = _storage().getItem(STORAGE.games);
-  return data ? JSON.parse(data) : [];
+  return _safeParse(data, []);
 }
 
 function saveGames(games) {
@@ -87,7 +102,7 @@ function saveGames(games) {
 
 function getTravelPlaces() {
   const data = _storage().getItem(STORAGE.travelPlaces);
-  return data ? JSON.parse(data) : {};
+  return _safeParse(data, {});
 }
 
 function saveTravelPlaces(data) {
@@ -96,7 +111,7 @@ function saveTravelPlaces(data) {
 
 function getTodos() {
   const data = _storage().getItem(STORAGE.todos);
-  return data ? JSON.parse(data) : [];
+  return _safeParse(data, []);
 }
 
 function saveTodos(todos) {
@@ -105,7 +120,7 @@ function saveTodos(todos) {
 
 function getWishes() {
   const data = _storage().getItem(STORAGE.wishes);
-  return data ? JSON.parse(data) : [];
+  return _safeParse(data, []);
 }
 
 function saveWishes(wishes) {
@@ -172,7 +187,7 @@ function getLastCheckIn() {
 
 function getCheckIns() {
   const data = _storage().getItem(STORAGE.checkIns);
-  return data ? JSON.parse(data) : {};
+  return _safeParse(data, {});
 }
 
 function saveCheckIns(data) {
@@ -195,7 +210,7 @@ function checkIn() {
 
 function getMessages() {
   const data = _storage().getItem(STORAGE.messages);
-  return data ? JSON.parse(data) : [];
+  return _safeParse(data, []);
 }
 
 function addMessage(msg) {
@@ -221,7 +236,7 @@ function deleteMessage(id) {
 
 function getChatMessages() {
   const data = _storage().getItem(STORAGE.chat);
-  return data ? JSON.parse(data) : [];
+  return _safeParse(data, []);
 }
 
 function addChatMessage(msg) {

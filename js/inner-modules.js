@@ -1,11 +1,17 @@
 // 动态分享、聊天、音乐模块
 document.addEventListener('DOMContentLoaded', async () => {
-  await (window.StorageReady || Promise.resolve());
-  if (!isLoggedIn()) return;
+  // 先显示加载状态
+  const feedListEl = document.getElementById('feedListMini');
+  if (feedListEl) feedListEl.innerHTML = '<p class="feed-loading-mini">加载中...</p>';
 
-  initFeed();
-  initChat();
-  initMusic();
+  try {
+    await (window.StorageReady || Promise.resolve());
+  } catch (_) {}
+
+  // 不再因 isLoggedIn 静默跳过，让各模块自行处理
+  try { initFeed(); } catch (e) { console.warn('[模块] 动态初始化失败:', e.message); }
+  try { initChat(); } catch (e) { console.warn('[模块] 聊天初始化失败:', e.message); }
+  try { initMusic(); } catch (e) { console.warn('[模块] 音乐初始化失败:', e.message); }
 
   const musicIconBtn = document.getElementById('musicIconBtn');
   const musicPopup = document.getElementById('musicPopup');
@@ -20,10 +26,15 @@ function initFeed() {
   if (!feedList) return;
 
   function render() {
-    const posts = getVisiblePosts(getCurrentUser().id);
+    const me = getCurrentUser();
+    if (!me) {
+      feedList.innerHTML = '<p class="feed-empty-mini">请先<a href="login.html">登录</a></p>';
+      return;
+    }
+    const posts = getVisiblePosts(me.id);
     const users = getUsers();
     if (posts.length === 0) {
-      feedList.innerHTML = '<p class="feed-empty-mini"><a href="feed.html">去发布第一条</a></p>';
+      feedList.innerHTML = '<p class="feed-empty-mini">暂无动态，<a href="feed.html">去发布第一条</a></p>';
       return;
     }
     const showPosts = posts.slice(0, 6);
@@ -84,6 +95,10 @@ function initChat() {
   if (chatPopup) chatPopup.addEventListener('click', (e) => e.target === chatPopup && chatPopup.classList.remove('open'));
 
   const me = getCurrentUser();
+  if (!me) {
+    chatMessages.innerHTML = '<p class="chat-empty">请先<a href="login.html">登录</a>后使用聊天</p>';
+    return;
+  }
   const users = getUsers();
   const other = users.find(u => u.id !== me.id);
   const otherName = other ? other.name : 'TA';

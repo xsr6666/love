@@ -40,8 +40,12 @@
 
   function saveToLocal(data) {
     Object.keys(data).forEach(k => {
-      try { localStorage.setItem(k, data[k]); }
-      catch (e) { console.warn('[云桥] 本地存储写入失败:', k, e && e.message); }
+      try {
+        localStorage.setItem(k, data[k]);
+      } catch (e) {
+        // localStorage 配额溢出：删除该 key 防止残留截断数据，数据保留在内存 cache 中
+        try { localStorage.removeItem(k); } catch (_) {}
+      }
     });
   }
 
@@ -59,12 +63,10 @@
       const state = await auth.getLoginState();
       if (state) return true;
       // 登录态过期，重新匿名登录
-      console.log('[云桥] 登录态已过期，重新匿名登录...');
       await auth.signInAnonymously();
-      console.log('[云桥] 重新登录成功');
       return true;
     } catch (e) {
-      console.error('[云桥] 认证失败:', e.message);
+      // 认证失败
       return false;
     }
   }
@@ -76,7 +78,7 @@
       await col.doc(docId).set(data);
       return;
     } catch (e) {
-      console.warn('[云桥] set(' + docId + ') 失败:', e.message);
+      // set 失败，尝试重试
       // 可能是权限问题（文档属于另一个匿名用户），尝试删除后重建
       if (retries < 1) {
         try { await col.doc(docId).remove(); } catch (_) {}
@@ -94,7 +96,7 @@
       const col = db.collection(CLOUD_COLLECTION);
       const res = await col.limit(1000).get();
       const docs = res.data || [];
-      console.log('[云桥] 从云端加载了', docs.length, '条文档');
+      // 静默加载，不输出日志
 
       const data = {};
       const byKey = {};
@@ -132,7 +134,6 @@
           if (localVal !== null) {
             data[base] = localVal;
             unsavedKeys.push(base);
-            console.log('[云桥] 合并：保留本地版本', base);
           }
         }
       });
@@ -147,10 +148,8 @@
           }, 2000);
         }
         return data;
-      } else {
-        console.warn('[云桥] ⚠ 云端有', docs.length, '条文档但解析出 0 条有效数据！可能是 value 字段缺失');
       }
-    } catch (e) { console.warn('[云桥] 云端加载失败:', e.message); }
+    } catch (e) { console.warn('[云桥] 云端加载失败，使用本地数据'); }
     return loadFromLocal();
   }
 
@@ -165,14 +164,14 @@
     await window.StorageReady;
     const app = window.__cloudbaseApp;
     if (!app) {
-      console.error('[云桥] CloudBase 未初始化，无法保存！请检查环境 ID 和网络');
+      // CloudBase 未初始化，稍后重试
       keysToSave.forEach(k => pendingKeys.add(k));
       return;
     }
 
     const authOk = await ensureAuth();
     if (!authOk) {
-      console.error('[云桥] 认证失败，本次保存跳过');
+      // 认证失败，稍后重试
       keysToSave.forEach(k => pendingKeys.add(k));
       return;
     }
@@ -214,11 +213,11 @@
           for (let i = chunks.length; i < chunks.length + 20; i++) {
             try { await col.doc(docId + '_' + i).remove(); } catch (_) { break; }
           }
-          console.log('[云桥] 大数据已分', chunks.length, '块保存:', key, '(', strVal.length, '字节)');
+          // 大数据分块保存完成
         }
         savedKeys.push(key);
       } catch (e) {
-        console.error('[云桥] 保存失败:', key, '-', e.message);
+        // 保存失败，稍后重试
         failedKeys.push(key);
       }
     }
@@ -228,13 +227,13 @@
       const meta = getLocalMeta();
       savedKeys.forEach(k => delete meta[k]);
       setLocalMeta(meta);
-      console.log('[云桥] ✓ 保存成功:', savedKeys.join(', '));
+      // 保存成功，清除修改标记
     }
 
     // 失败的重新加入队列
     if (failedKeys.length > 0) {
       failedKeys.forEach(k => pendingKeys.add(k));
-      console.warn('[云桥] ✗ 保存失败（将重试）:', failedKeys.join(', '));
+      // 失败的键已重新加入队列等待重试
     }
   }
 
@@ -251,7 +250,7 @@
       return;
     }
     if (typeof cloudbase === 'undefined') {
-      console.warn('[云桥] 腾讯云 SDK 未加载，使用本地存储');
+      // 腾讯云 SDK 未加载，使用本地存储
       cache = loadFromLocal();
       return;
     }
@@ -262,10 +261,10 @@
       });
       window.__cloudbaseApp = app;
       await app.auth().signInAnonymously();
-      console.log('[云桥] 匿名登录成功，环境:', TENCENT_ENV_ID);
+      // 云端连接就绪
       cache = await loadFromCloud();
     } catch (e) {
-      console.error('[云桥] 初始化失败:', e.message, e);
+      console.warn('[云桥] 云端连接失败，使用本地数据');
       cache = loadFromLocal();
     }
   })();
@@ -375,7 +374,7 @@
     setItem: function(key, val) {
       cache[key] = val;
       try { localStorage.setItem(key, val); }
-      catch (e) { console.warn('[云桥] 本地写入失败:', key, e && e.message); }
+      catch (_) {}
       if (useCloud() && CLOUD_KEYS.includes(key)) {
         const meta = getLocalMeta();
         meta[key] = Date.now();

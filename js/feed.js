@@ -1,33 +1,49 @@
 // 点滴时间线
 document.addEventListener('DOMContentLoaded', async () => {
-  await (window.StorageReady || Promise.resolve());
+  const feedList = document.getElementById('feedList');
+  const feedEmpty = document.getElementById('feedEmpty');
+
+  // 显示加载状态
+  if (feedList) feedList.innerHTML = '<p class="feed-loading" style="text-align:center;color:rgba(255,255,255,0.6);padding:3rem 0;">加载中...</p>';
+
+  try {
+    await (window.StorageReady || Promise.resolve());
+  } catch (_) {}
+
   if (!isLoggedIn()) {
     window.location.href = 'login.html?redirect=feed.html';
     return;
   }
 
-  const feedList = document.getElementById('feedList');
-  const feedEmpty = document.getElementById('feedEmpty');
-
   renderFeed();
 });
 
 function renderFeed() {
-  const posts = getVisiblePosts(getCurrentUser().id);
-  const users = getUsers();
+  const me = getCurrentUser();
   const feedList = document.getElementById('feedList');
   const feedEmpty = document.getElementById('feedEmpty');
 
+  if (!me) {
+    if (feedList) feedList.innerHTML = '';
+    if (feedEmpty) {
+      feedEmpty.classList.remove('hidden');
+      feedEmpty.innerHTML = '<p>登录信息异常，请<a href="login.html">重新登录</a></p>';
+    }
+    return;
+  }
+
+  const posts = getVisiblePosts(me.id);
+  const users = getUsers();
+
   if (posts.length === 0) {
     feedList.classList.add('hidden');
+    feedList.innerHTML = '';
     feedEmpty.classList.remove('hidden');
     return;
   }
 
   feedList.classList.remove('hidden');
   feedEmpty.classList.add('hidden');
-
-  const me = getCurrentUser();
   feedList.innerHTML = posts.map(post => {
     const user = users.find(u => u.id === post.userId) || { name: '未知', avatar: '' };
     const time = formatTime(post.timestamp);

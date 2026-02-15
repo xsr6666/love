@@ -572,6 +572,13 @@ body.inner-page .header-center, body.inner-page .hero-title {
   color: #fff;
 }
 
+.feed-loading-mini {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.45);
+  padding: 2rem;
+  font-size: 0.9rem;
+}
+
 .feed-empty-mini {
   text-align: center;
   color: rgba(255, 255, 255, 0.6);
