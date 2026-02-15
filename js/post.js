@@ -41,18 +41,68 @@ document.addEventListener('DOMContentLoaded', async () => {
     postImageInput.click();
   });
 
+  // 高清图片：最长边 1920px，质量 0.92，兼顾清晰度与存储
+  const IMG_MAX_EDGE = 1920;
+  const IMG_QUALITY = 0.92;
+  const IMG_SKIP_COMPRESS_BYTES = 400000; // 小于约 400KB 不压缩
+
+  function compressImageForPost(dataUrl) {
+    return new Promise((resolve, reject) => {
+      const len = dataUrl.length;
+      if (len < IMG_SKIP_COMPRESS_BYTES) {
+        resolve(dataUrl);
+        return;
+      }
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if (w <= IMG_MAX_EDGE && h <= IMG_MAX_EDGE && len < IMG_SKIP_COMPRESS_BYTES * 2) {
+          resolve(dataUrl);
+          return;
+        }
+        if (w > IMG_MAX_EDGE || h > IMG_MAX_EDGE) {
+          if (w > h) {
+            h = Math.round((h * IMG_MAX_EDGE) / w);
+            w = IMG_MAX_EDGE;
+          } else {
+            w = Math.round((w * IMG_MAX_EDGE) / h);
+            h = IMG_MAX_EDGE;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        try {
+          const out = canvas.toDataURL('image/jpeg', IMG_QUALITY);
+          resolve(out);
+        } catch (e) {
+          resolve(dataUrl);
+        }
+      };
+      img.onerror = reject;
+      img.src = dataUrl;
+    });
+  }
+
   postImageInput.addEventListener('change', (e) => {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
     const imageFiles = files.filter(f => f.type.startsWith('image/'));
     if (!imageFiles.length) return;
 
-    let loaded = 0;
     imageFiles.forEach(file => {
       const reader = new FileReader();
-      reader.onload = (ev) => {
-        imageList.push(ev.target.result);
-        renderPreviews();
+      reader.onload = async (ev) => {
+        try {
+          const compressed = await compressImageForPost(ev.target.result);
+          imageList.push(compressed);
+          renderPreviews();
+        } catch (err) {
+          imageList.push(ev.target.result);
+          renderPreviews();
+        }
       };
       reader.readAsDataURL(file);
     });

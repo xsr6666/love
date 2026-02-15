@@ -16,7 +16,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   const musicIconBtn = document.getElementById('musicIconBtn');
   const musicPopup = document.getElementById('musicPopup');
   const musicClose = document.getElementById('musicClose');
-  if (musicIconBtn) musicIconBtn.addEventListener('click', () => musicPopup.classList.add('open'));
+  // 点击音乐图标：在新标签页打开，实现后台播放（切换页面不中断）
+  if (musicIconBtn) musicIconBtn.addEventListener('click', () => window.open('music.html', '_blank', 'noopener'));
   if (musicClose) musicClose.addEventListener('click', () => musicPopup.classList.remove('open'));
   if (musicPopup) musicPopup.addEventListener('click', (e) => e.target === musicPopup && musicPopup.classList.remove('open'));
 });
