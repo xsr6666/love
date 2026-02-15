@@ -95,6 +95,15 @@
       const res = await col.limit(1000).get();
       const docs = res.data || [];
       console.log('[云桥] 从云端加载了', docs.length, '条文档');
+
+      // ★ 诊断：打印每个原始文档的结构
+      docs.forEach((doc, i) => {
+        const valLen = doc.value !== undefined && doc.value !== null
+          ? (typeof doc.value === 'string' ? doc.value.length + '字符' : typeof doc.value)
+          : '(无value)';
+        console.log('[云桥] 原始文档[' + i + ']', '_id=' + doc._id, 'key=' + doc.key, 'value=' + valLen, 'updatedAt=' + (doc.updatedAt || doc._updatedAt || '无'));
+      });
+
       const data = {};
       const byKey = {};
       docs.forEach(doc => {
@@ -118,6 +127,16 @@
         } else if (single && single.value !== undefined) {
           data[base] = typeof single.value === 'string' ? single.value : JSON.stringify(single.value);
         }
+      });
+
+      // ★ 诊断：打印解析后每个 key 的数据情况
+      console.log('[云桥] ---- 解析结果 ----');
+      CLOUD_KEYS.forEach(base => {
+        const val = data[base];
+        const info = val !== undefined ? (val.length + '字符, 开头: ' + val.substring(0, 80)) : '(未从云端读到)';
+        const localVal = localStorage.getItem(base);
+        const localInfo = localVal !== null ? (localVal.length + '字符') : '(本地也无)';
+        console.log('[云桥]  ', base, '→ 云端:', info, '| 本地:', localInfo);
       });
 
       // 合并策略：本地有未同步的修改时，保留本地数据
@@ -146,6 +165,8 @@
           }, 2000);
         }
         return data;
+      } else {
+        console.warn('[云桥] ⚠ 云端有', docs.length, '条文档但解析出 0 条有效数据！可能是 value 字段缺失');
       }
     } catch (e) { console.warn('[云桥] 云端加载失败:', e.message); }
     return loadFromLocal();
@@ -300,19 +321,68 @@
       const db = window.__cloudbaseApp.database();
       const col = db.collection('LoveBase');
       const testId = '_test_write_' + Date.now();
-      await col.doc(testId).set({ value: 'test', updatedAt: Date.now() });
-      console.log('✓ 写入测试成功，文档ID:', testId);
-      // 读回验证
+      const testData = { value: 'hello_test_123', key: testId, updatedAt: Date.now() };
+      console.log('写入数据:', JSON.stringify(testData));
+      await col.doc(testId).set(testData);
+      console.log('✓ 写入成功');
+      // 读回验证 - 检查字段是否完整
       const res = await col.doc(testId).get();
-      console.log('✓ 读回验证:', res.data && res.data.length > 0 ? '成功' : '失败');
-      // 清理测试文档
+      const doc = res.data && res.data[0];
+      if (doc) {
+        console.log('✓ 读回文档:', JSON.stringify(doc));
+        console.log('  doc.value =', JSON.stringify(doc.value), '(期望: "hello_test_123")');
+        console.log('  doc.key =', JSON.stringify(doc.key));
+        console.log('  doc.updatedAt =', doc.updatedAt);
+        if (doc.value === 'hello_test_123') {
+          console.log('✓ value 字段完全正确！');
+        } else {
+          console.error('✗ value 字段不匹配！写入 "hello_test_123" 但读到:', doc.value);
+          console.error('  这说明 CloudBase SDK 可能修改了字段。完整文档:', doc);
+        }
+      } else {
+        console.error('✗ 读回失败，文档为空。res.data =', res.data);
+      }
+      // 清理
       try { await col.doc(testId).remove(); } catch (_) {}
-      console.log('✓ 云端读写完全正常！');
     } catch (e) {
-      console.error('✗ 写入测试失败:', e.message, e);
-      console.error('请检查：1) 云开发控制台 → 数据库 → LoveBase 集合的安全规则');
-      console.error('        2) 建议设置为 { "read": true, "write": true }');
+      console.error('✗ 测试失败:', e.message, e);
+      console.error('请检查：1) LoveBase 集合安全规则设置为 { "read": true, "write": true }');
     }
+  };
+
+  // 全面诊断
+  window.__cloudbaseDiagnose = async function() {
+    console.log('====== 云桥全面诊断 ======');
+    console.log('1. 环境ID:', typeof TENCENT_ENV_ID !== 'undefined' ? TENCENT_ENV_ID : '(未定义)');
+    console.log('2. CloudBase app:', window.__cloudbaseApp ? '✓ 已初始化' : '✗ 未初始化');
+    console.log('3. cache 有', Object.keys(cache).length, '个 key');
+    CLOUD_KEYS.forEach(k => {
+      const cv = cache[k];
+      const lv = localStorage.getItem(k);
+      const cInfo = cv !== undefined ? (typeof cv === 'string' ? cv.length + '字符' : typeof cv) : '(空)';
+      const lInfo = lv !== null ? lv.length + '字符' : '(空)';
+      if (cInfo !== '(空)' || lInfo !== '(空)') {
+        console.log('  ' + k, '→ cache:', cInfo, '| localStorage:', lInfo);
+      }
+    });
+    console.log('4. 本地修改标记:', JSON.stringify(getLocalMeta()));
+    console.log('5. pending保存:', pendingKeys.size > 0 ? Array.from(pendingKeys).join(', ') : '(无)');
+    if (window.__cloudbaseApp) {
+      try {
+        const db = window.__cloudbaseApp.database();
+        const res = await db.collection('LoveBase').limit(1000).get();
+        const docs = res.data || [];
+        console.log('6. 云端共', docs.length, '条文档:');
+        docs.forEach((d, i) => {
+          const v = d.value;
+          const vInfo = v === undefined ? 'undefined' : v === null ? 'null' : typeof v === 'string' ? v.length + '字符 → "' + v.substring(0, 60) + (v.length > 60 ? '..."' : '"') : typeof v + ': ' + JSON.stringify(v).substring(0, 60);
+          console.log('  [' + i + '] _id=' + d._id, 'key=' + d.key, 'value=' + vInfo);
+        });
+      } catch (e) {
+        console.error('6. 云端读取失败:', e.message);
+      }
+    }
+    console.log('====== 诊断完毕 ======');
   };
 
   // ---- 对外接口 ----
