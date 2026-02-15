@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // 完成设置
-  setupBtn.addEventListener('click', () => {
+  setupBtn.addEventListener('click', async () => {
     const name1 = document.getElementById('name1').value.trim();
     const name2 = document.getElementById('name2').value.trim();
     const pwd1 = document.getElementById('pwd1').value;
@@ -45,6 +45,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     ];
     saveUsers(users);
     setCurrentUser(users[0].id);
+    // 等待云端保存完成后再跳转
+    if (window.CloudStorage && window.CloudStorage.flush) {
+      await window.CloudStorage.flush();
+    }
     alert('设置完成！');
     goToRedirect();
   });
@@ -88,7 +92,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     return d.innerHTML;
   }
 
-  function doLogin() {
+  async function doLogin() {
     if (!selectedUserId) {
       alert('请先选择账号');
       return;
@@ -100,6 +104,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
     setCurrentUser(selectedUserId);
+    // 等待云端保存完成后再跳转
+    if (window.CloudStorage && window.CloudStorage.flush) {
+      await window.CloudStorage.flush();
+    }
     goToRedirect();
   }
 

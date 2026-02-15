@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     e.target.value = '';
   });
 
-  document.getElementById('saveBtn').addEventListener('click', () => {
+  document.getElementById('saveBtn').addEventListener('click', async () => {
     const name = editName.value.trim();
     if (!name) {
       alert('昵称不能为空');
@@ -67,6 +67,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     try {
       saveUsers(users);
+      // 等待云端保存完成后再跳转，防止数据丢失
+      if (window.CloudStorage && window.CloudStorage.flush) {
+        await window.CloudStorage.flush();
+      }
       alert('保存成功');
       window.location.href = 'profile.html';
     } catch (err) {

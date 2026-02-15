@@ -4,10 +4,12 @@
     'loveBase_users', 'loveBase_posts', 'loveBase_setupDone', 'loveBase_currentUser',
     'loveBase_loveDays', 'loveBase_lastCheckIn', 'loveBase_checkIns',
     'loveBase_messages', 'loveBase_chat', 'loveBase_albums', 'loveBase_movies',
-    'loveBase_games', 'loveBase_travelPlaces', 'loveBase_todos', 'loveBase_wishes'
+    'loveBase_games', 'loveBase_travelPlaces', 'loveBase_todos', 'loveBase_wishes',
+    'loveBase_bgImage', 'loveBase_bgImageInner', 'loveBase_bgVideo'
   ];
   const CLOUD_COLLECTION = 'LoveBase';
-  const CHUNK_SIZE = 800000; // 单条文档约 1MB 限制，分块 800KB 留余量
+  const CHUNK_SIZE = 500000; // 500KB per chunk（留足余量，避免超出 1MB 文档上限）
+  const META_KEY = 'loveBase_localMeta';
 
   let cache = {};
   let saveTimer = null;
@@ -15,6 +17,16 @@
 
   function useCloud() {
     return typeof TENCENT_ENV_ID === 'string' && TENCENT_ENV_ID.length > 0;
+  }
+
+  // ---- 本地修改时间追踪 ----
+  function getLocalMeta() {
+    try { return JSON.parse(localStorage.getItem(META_KEY) || '{}'); }
+    catch (_) { return {}; }
+  }
+  function setLocalMeta(meta) {
+    try { localStorage.setItem(META_KEY, JSON.stringify(meta)); }
+    catch (_) {}
   }
 
   function loadFromLocal() {
@@ -28,34 +40,77 @@
 
   function saveToLocal(data) {
     Object.keys(data).forEach(k => {
-      try {
-        localStorage.setItem(k, data[k]);
-      } catch (e) {
-        console.warn('本地存储空间不足，跳过本地回写:', k, e && e.message);
-      }
+      try { localStorage.setItem(k, data[k]); }
+      catch (e) { console.warn('[云桥] 本地存储写入失败:', k, e && e.message); }
     });
   }
 
+  // ---- 读取云端时间戳（兼容新旧字段名） ----
+  function getDocTs(doc) {
+    return doc.updatedAt || doc._updatedAt || 0;
+  }
+
+  // ---- 确保匿名登录有效 ----
+  async function ensureAuth() {
+    const app = window.__cloudbaseApp;
+    if (!app) return false;
+    try {
+      const auth = app.auth();
+      const state = await auth.getLoginState();
+      if (state) return true;
+      // 登录态过期，重新匿名登录
+      console.log('[云桥] 登录态已过期，重新匿名登录...');
+      await auth.signInAnonymously();
+      console.log('[云桥] 重新登录成功');
+      return true;
+    } catch (e) {
+      console.error('[云桥] 认证失败:', e.message);
+      return false;
+    }
+  }
+
+  // ---- 单个文档的 upsert（带重试和降级） ----
+  async function upsertDoc(col, docId, data, retries) {
+    retries = retries || 0;
+    try {
+      await col.doc(docId).set(data);
+      return;
+    } catch (e) {
+      console.warn('[云桥] set(' + docId + ') 失败:', e.message);
+      // 可能是权限问题（文档属于另一个匿名用户），尝试删除后重建
+      if (retries < 1) {
+        try { await col.doc(docId).remove(); } catch (_) {}
+        return upsertDoc(col, docId, data, retries + 1);
+      }
+      throw e; // 重试后仍然失败，向上抛出
+    }
+  }
+
+  // ---- 加载云端数据 ----
   async function loadFromCloud() {
     if (typeof cloudbase === 'undefined') return loadFromLocal();
     try {
       const db = window.__cloudbaseApp.database();
       const col = db.collection(CLOUD_COLLECTION);
-      const res = await col.limit(200).get();
+      const res = await col.limit(1000).get();
       const docs = res.data || [];
+      console.log('[云桥] 从云端加载了', docs.length, '条文档');
       const data = {};
       const byKey = {};
       docs.forEach(doc => {
         const k = doc.key || doc._id;
         if (!k) return;
-        const updated = doc._updatedAt || 0;
-        if (!byKey[k] || updated > (byKey[k]._updatedAt || 0)) byKey[k] = doc;
+        const updated = getDocTs(doc);
+        if (!byKey[k] || updated > getDocTs(byKey[k])) byKey[k] = doc;
       });
+
+      const cloudTimestamps = {};
       CLOUD_KEYS.forEach(base => {
         const single = byKey[base];
         const partKeys = Object.keys(byKey).filter(x => x.startsWith(base + '_') && /_\d+$/.test(x));
-        const singleTs = single && single._updatedAt ? single._updatedAt : 0;
-        const chunkTs = partKeys.length ? Math.max(...partKeys.map(pk => (byKey[pk] && byKey[pk]._updatedAt) || 0)) : 0;
+        const singleTs = single ? getDocTs(single) : 0;
+        const chunkTs = partKeys.length ? Math.max(...partKeys.map(pk => getDocTs(byKey[pk]) || 0)) : 0;
+        cloudTimestamps[base] = Math.max(singleTs, chunkTs);
         if (partKeys.length && chunkTs >= singleTs) {
           partKeys.sort((a, b) => (parseInt(a.split('_').pop(), 10) || 0) - (parseInt(b.split('_').pop(), 10) || 0));
           const parts = partKeys.map(pk => byKey[pk] && byKey[pk].value).filter(Boolean);
@@ -64,61 +119,119 @@
           data[base] = typeof single.value === 'string' ? single.value : JSON.stringify(single.value);
         }
       });
+
+      // 合并策略：本地有未同步的修改时，保留本地数据
+      const meta = getLocalMeta();
+      const unsavedKeys = [];
+      CLOUD_KEYS.forEach(base => {
+        const localModTime = meta[base] || 0;
+        const cloudTime = cloudTimestamps[base] || 0;
+        if (localModTime && localModTime > cloudTime) {
+          const localVal = localStorage.getItem(base);
+          if (localVal !== null) {
+            data[base] = localVal;
+            unsavedKeys.push(base);
+            console.log('[云桥] 合并：保留本地版本', base);
+          }
+        }
+      });
+
       if (Object.keys(data).length > 0) {
         saveToLocal(data);
+        // 未同步的本地修改，延迟补推到云端
+        if (unsavedKeys.length > 0) {
+          setTimeout(() => {
+            unsavedKeys.filter(k => CLOUD_KEYS.includes(k)).forEach(k => pendingKeys.add(k));
+            saveToCloud();
+          }, 2000);
+        }
         return data;
       }
-    } catch (e) { console.warn('腾讯云 加载失败:', e.message); }
+    } catch (e) { console.warn('[云桥] 云端加载失败:', e.message); }
     return loadFromLocal();
   }
 
+  // ---- 保存到云端（逐 key 独立保存，一个失败不影响其他） ----
   async function saveToCloud() {
     if (typeof cloudbase === 'undefined') return;
     const keysToSave = Array.from(pendingKeys).filter(k => CLOUD_KEYS.includes(k));
     pendingKeys.clear();
     if (keysToSave.length === 0) return;
-    try {
-      await window.StorageReady;
-      const app = window.__cloudbaseApp;
-      if (!app) return;
-      const db = app.database();
-      const col = db.collection(CLOUD_COLLECTION);
-      for (const key of keysToSave) {
+
+    // 确保登录态有效
+    await window.StorageReady;
+    const app = window.__cloudbaseApp;
+    if (!app) {
+      console.error('[云桥] CloudBase 未初始化，无法保存！请检查环境 ID 和网络');
+      keysToSave.forEach(k => pendingKeys.add(k));
+      return;
+    }
+
+    const authOk = await ensureAuth();
+    if (!authOk) {
+      console.error('[云桥] 认证失败，本次保存跳过');
+      keysToSave.forEach(k => pendingKeys.add(k));
+      return;
+    }
+
+    const db = app.database();
+    const col = db.collection(CLOUD_COLLECTION);
+    const savedKeys = [];
+    const failedKeys = [];
+
+    for (const key of keysToSave) {
+      try {
         const val = cache[key] !== undefined ? cache[key] : localStorage.getItem(key);
-        if (val === undefined) continue;
+        if (val === undefined || val === null) continue;
         const strVal = typeof val === 'string' ? val : JSON.stringify(val);
         const docId = key.replace(/[^a-zA-Z0-9_-]/g, '_') || 'k';
         const ts = Date.now();
+
         if (strVal.length <= CHUNK_SIZE) {
-          await col.doc(docId).set({ key: key, value: strVal, _updatedAt: ts });
+          // 单文档保存
+          await upsertDoc(col, docId, { key: key, value: strVal, updatedAt: ts });
+          // 如果以前有分块，清理旧分块
+          for (let ci = 0; ci < 30; ci++) {
+            try { await col.doc(docId + '_' + ci).remove(); } catch (_) { break; }
+          }
         } else {
+          // 分块保存
           const chunks = [];
           for (let i = 0; i < strVal.length; i += CHUNK_SIZE) {
             chunks.push(strVal.slice(i, i + CHUNK_SIZE));
           }
+          // 删除旧的主文档
           try { await col.doc(docId).remove(); } catch (_) {}
+          // 保存各块
           for (let i = 0; i < chunks.length; i++) {
             const chunkId = docId + '_' + i;
-            await col.doc(chunkId).set({ key: chunkId, value: chunks[i], _updatedAt: ts });
+            await upsertDoc(col, chunkId, { key: key + '_' + i, value: chunks[i], updatedAt: ts });
           }
-          console.log('腾讯云 大文档已分', chunks.length, '块保存:', key);
+          // 清理多余的旧分块
+          for (let i = chunks.length; i < chunks.length + 20; i++) {
+            try { await col.doc(docId + '_' + i).remove(); } catch (_) { break; }
+          }
+          console.log('[云桥] 大数据已分', chunks.length, '块保存:', key, '(', strVal.length, '字节)');
         }
-      }
-      console.log('腾讯云 保存成功，共', keysToSave.length, '条:', keysToSave.join(', '));
-      // 保存后立即读回验证
-      try {
-        const verify = await col.limit(50).get();
-        const docs = verify.data || [];
-        console.log('腾讯云 验证读取：LoveBase 集合当前共', docs.length, '条文档，_id 示例:', docs.slice(0, 5).map(d => d._id || d.key));
-        if (docs.length === 0) {
-          console.warn('腾讯云 读取为空！请确认：1) 控制台进入「数据库」→「集合」→ LoveBase（不是 MySQL）2) 环境 ID 是否一致');
-        }
+        savedKeys.push(key);
       } catch (e) {
-        console.warn('腾讯云 验证读取失败:', e.message);
+        console.error('[云桥] 保存失败:', key, '-', e.message);
+        failedKeys.push(key);
       }
-    } catch (e) {
-      keysToSave.forEach(k => pendingKeys.add(k));
-      console.warn('腾讯云 保存失败:', e.message, e);
+    }
+
+    // 成功的清除修改标记
+    if (savedKeys.length > 0) {
+      const meta = getLocalMeta();
+      savedKeys.forEach(k => delete meta[k]);
+      setLocalMeta(meta);
+      console.log('[云桥] ✓ 保存成功:', savedKeys.join(', '));
+    }
+
+    // 失败的重新加入队列
+    if (failedKeys.length > 0) {
+      failedKeys.forEach(k => pendingKeys.add(k));
+      console.warn('[云桥] ✗ 保存失败（将重试）:', failedKeys.join(', '));
     }
   }
 
@@ -128,13 +241,14 @@
     saveTimer = setTimeout(() => { saveToCloud(); saveTimer = null; }, 500);
   }
 
+  // ---- 初始化 ----
   window.StorageReady = (async function() {
     if (!useCloud()) {
       cache = loadFromLocal();
       return;
     }
     if (typeof cloudbase === 'undefined') {
-      console.warn('腾讯云 SDK 未加载，使用本地存储');
+      console.warn('[云桥] 腾讯云 SDK 未加载，使用本地存储');
       cache = loadFromLocal();
       return;
     }
@@ -145,45 +259,96 @@
       });
       window.__cloudbaseApp = app;
       await app.auth().signInAnonymously();
+      console.log('[云桥] 匿名登录成功，环境:', TENCENT_ENV_ID);
       cache = await loadFromCloud();
     } catch (e) {
-      console.warn('腾讯云 初始化失败:', e.message, e);
+      console.error('[云桥] 初始化失败:', e.message, e);
       cache = loadFromLocal();
     }
   })();
 
+  // 页面隐藏时立即尝试保存（安全兜底）
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden' && pendingKeys.size > 0) {
+      if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
+      saveToCloud();
+    }
+  });
+
+  // ---- 调试工具 ----
   window.__cloudbaseVerifyRead = async function() {
     if (!window.__cloudbaseApp) return console.warn('CloudBase 未初始化');
     try {
       const db = window.__cloudbaseApp.database();
-      const res = await db.collection('LoveBase').limit(100).get();
+      const res = await db.collection('LoveBase').limit(1000).get();
       const docs = res.data || [];
       console.log('LoveBase 集合共', docs.length, '条文档');
-      docs.forEach((d, i) => console.log('  [' + i + '] _id:', d._id, 'key:', d.key, 'value 长度:', (d.value && d.value.length) || 0));
+      docs.forEach((d, i) => console.log('  [' + i + '] _id:', d._id, 'key:', d.key, 'value长度:', (d.value && d.value.length) || 0));
       return docs;
     } catch (e) {
       console.error('读取失败:', e);
     }
   };
 
+  // 手动测试写入是否可用
+  window.__cloudbaseTestWrite = async function() {
+    if (!window.__cloudbaseApp) return console.error('CloudBase 未初始化');
+    try {
+      const authOk = await ensureAuth();
+      console.log('认证状态:', authOk ? '正常' : '失败');
+      if (!authOk) return;
+      const db = window.__cloudbaseApp.database();
+      const col = db.collection('LoveBase');
+      const testId = '_test_write_' + Date.now();
+      await col.doc(testId).set({ value: 'test', updatedAt: Date.now() });
+      console.log('✓ 写入测试成功，文档ID:', testId);
+      // 读回验证
+      const res = await col.doc(testId).get();
+      console.log('✓ 读回验证:', res.data && res.data.length > 0 ? '成功' : '失败');
+      // 清理测试文档
+      try { await col.doc(testId).remove(); } catch (_) {}
+      console.log('✓ 云端读写完全正常！');
+    } catch (e) {
+      console.error('✗ 写入测试失败:', e.message, e);
+      console.error('请检查：1) 云开发控制台 → 数据库 → LoveBase 集合的安全规则');
+      console.error('        2) 建议设置为 { "read": true, "write": true }');
+    }
+  };
+
+  // ---- 对外接口 ----
   window.CloudStorage = {
     getItem: function(key) {
-      const v = cache[key] !== undefined ? cache[key] : localStorage.getItem(key);
-      return v;
+      return cache[key] !== undefined ? cache[key] : localStorage.getItem(key);
     },
     setItem: function(key, val) {
       cache[key] = val;
-      try {
-        localStorage.setItem(key, val);
-      } catch (e) {
-        console.warn('本地存储空间不足，已跳过本地写入，继续尝试云端同步:', key, e && e.message);
+      try { localStorage.setItem(key, val); }
+      catch (e) { console.warn('[云桥] 本地写入失败:', key, e && e.message); }
+      if (useCloud() && CLOUD_KEYS.includes(key)) {
+        const meta = getLocalMeta();
+        meta[key] = Date.now();
+        setLocalMeta(meta);
+        debouncedSave(key);
       }
-      if (useCloud() && CLOUD_KEYS.includes(key)) debouncedSave(key);
     },
     removeItem: function(key) {
       delete cache[key];
       localStorage.removeItem(key);
-      if (useCloud() && CLOUD_KEYS.includes(key)) debouncedSave(key);
+      if (useCloud() && CLOUD_KEYS.includes(key)) {
+        const meta = getLocalMeta();
+        meta[key] = Date.now();
+        setLocalMeta(meta);
+        debouncedSave(key);
+      }
+    },
+    /**
+     * 立即将所有待保存数据同步到云端，返回 Promise。
+     * 在页面跳转前调用，确保数据不丢失。
+     */
+    flush: function() {
+      if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
+      if (pendingKeys.size === 0) return Promise.resolve();
+      return saveToCloud();
     }
   };
 })();

@@ -81,11 +81,15 @@ passwordInput.addEventListener('keypress', (e) => {
   if (e.key === 'Enter') loginBtn.click();
 });
 
+// 获取存储对象（优先使用云端存储）
+const _cs = () => window.CloudStorage || localStorage;
+
 // 保存图片
-saveUrlBtn.addEventListener('click', () => {
+saveUrlBtn.addEventListener('click', async () => {
   const url = bgUrlInput.value.trim();
   if (!url) { alert('请输入图片链接'); return; }
-  localStorage.setItem(BG_KEY, url);
+  _cs().setItem(BG_KEY, url);
+  if (window.CloudStorage && window.CloudStorage.flush) await window.CloudStorage.flush();
   alert('保存成功');
   loadCurrent();
 });
@@ -93,16 +97,17 @@ saveUrlBtn.addEventListener('click', () => {
 // 保存 OMDB Key
 saveOmdbBtn?.addEventListener('click', () => {
   const key = omdbKeyInput?.value?.trim() || '';
-  localStorage.setItem(OMDB_KEY, key);
+  _cs().setItem(OMDB_KEY, key);
   alert(key ? '已保存' : '已清除');
   loadCurrent();
 });
 
 // 保存视频
-saveVideoBtn.addEventListener('click', () => {
+saveVideoBtn.addEventListener('click', async () => {
   const url = bgVideoInput.value.trim();
   if (!url) { alert('请输入视频链接'); return; }
-  localStorage.setItem(BG_VIDEO_KEY, url);
+  _cs().setItem(BG_VIDEO_KEY, url);
+  if (window.CloudStorage && window.CloudStorage.flush) await window.CloudStorage.flush();
   alert('保存成功，视频将作为动态背景');
   loadCurrent();
 });
@@ -113,32 +118,36 @@ resetLoveBtn?.addEventListener('click', () => {
   alert('已重置为120天');
 });
 
-clearVideoBtn.addEventListener('click', () => {
-  localStorage.removeItem(BG_VIDEO_KEY);
+clearVideoBtn.addEventListener('click', async () => {
+  _cs().removeItem(BG_VIDEO_KEY);
+  if (window.CloudStorage && window.CloudStorage.flush) await window.CloudStorage.flush();
   bgVideoInput.value = '';
   alert('已清除，将使用图片背景');
   loadCurrent();
 });
 
 // 清除图片，恢复默认
-clearImageBtn.addEventListener('click', () => {
-  localStorage.removeItem(BG_KEY);
+clearImageBtn.addEventListener('click', async () => {
+  _cs().removeItem(BG_KEY);
+  if (window.CloudStorage && window.CloudStorage.flush) await window.CloudStorage.flush();
   bgUrlInput.value = DEFAULT_BG;
   alert('已清除，已恢复默认背景');
   loadCurrent();
 });
 
 // 保存内页背景
-saveInnerUrlBtn.addEventListener('click', () => {
+saveInnerUrlBtn.addEventListener('click', async () => {
   const url = bgInnerUrlInput.value.trim();
   if (!url) { alert('请输入图片链接'); return; }
-  localStorage.setItem(BG_INNER_KEY, url);
+  _cs().setItem(BG_INNER_KEY, url);
+  if (window.CloudStorage && window.CloudStorage.flush) await window.CloudStorage.flush();
   alert('保存成功');
   loadCurrent();
 });
 
-clearInnerImageBtn.addEventListener('click', () => {
-  localStorage.removeItem(BG_INNER_KEY);
+clearInnerImageBtn.addEventListener('click', async () => {
+  _cs().removeItem(BG_INNER_KEY);
+  if (window.CloudStorage && window.CloudStorage.flush) await window.CloudStorage.flush();
   bgInnerUrlInput.value = '';
   alert('已清除，内页将使用首页背景');
   loadCurrent();
@@ -162,8 +171,9 @@ fileInnerInput.addEventListener('change', (e) => {
 });
 function handleInnerFile(file) {
   const reader = new FileReader();
-  reader.onload = (e) => {
-    localStorage.setItem(BG_INNER_KEY, e.target.result);
+  reader.onload = async (e) => {
+    _cs().setItem(BG_INNER_KEY, e.target.result);
+    if (window.CloudStorage && window.CloudStorage.flush) await window.CloudStorage.flush();
     alert('上传成功');
     loadCurrent();
   };
@@ -171,10 +181,10 @@ function handleInnerFile(file) {
 }
 
 function loadCurrent() {
-  const url = localStorage.getItem(BG_KEY) || DEFAULT_BG;
-  const urlInner = localStorage.getItem(BG_INNER_KEY) || '';
-  const video = localStorage.getItem(BG_VIDEO_KEY) || '';
-  const omdb = localStorage.getItem(OMDB_KEY) || '';
+  const url = _cs().getItem(BG_KEY) || DEFAULT_BG;
+  const urlInner = _cs().getItem(BG_INNER_KEY) || '';
+  const video = _cs().getItem(BG_VIDEO_KEY) || '';
+  const omdb = _cs().getItem(OMDB_KEY) || '';
   bgUrlInput.value = url;
   bgInnerUrlInput.value = urlInner;
   bgVideoInput.value = video;
@@ -218,8 +228,9 @@ fileInput.addEventListener('change', (e) => {
 
 function handleFile(file) {
   const reader = new FileReader();
-  reader.onload = (e) => {
-    localStorage.setItem(BG_KEY, e.target.result);
+  reader.onload = async (e) => {
+    _cs().setItem(BG_KEY, e.target.result);
+    if (window.CloudStorage && window.CloudStorage.flush) await window.CloudStorage.flush();
     alert('上传成功');
     loadCurrent();
   };

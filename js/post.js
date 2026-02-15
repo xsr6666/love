@@ -138,7 +138,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  publishBtn.addEventListener('click', () => {
+  publishBtn.addEventListener('click', async () => {
     const content = postText.value.trim();
     if (!content && !imageList.length && !videoUrl) {
       alert('写点什么或添加照片/视频吧');
@@ -149,6 +149,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const albumId = albumSelect?.value || 'default';
     try {
       addPost({ userId: user.id, content, images: [...imageList], video: videoUrl, visibility, albumId });
+      // 等待云端保存完成后再跳转，防止数据丢失
+      if (window.CloudStorage && window.CloudStorage.flush) {
+        await window.CloudStorage.flush();
+      }
       alert('发布成功！');
       window.location.href = 'feed.html';
     } catch (err) {
